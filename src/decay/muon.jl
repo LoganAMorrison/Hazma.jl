@@ -23,23 +23,23 @@ function dBdy(y::Real)
     (2.0 / y) * (j_plus(y) + j_minus(y))
 end
 
-function dnde_muon_integand(cl::Real, eγ::Real, eμ::Real)
+function dnde_muon_integrand(cl::Real, eγ::Real, eμ::Real)
     β = sqrt(1 - (MUON_MASS / eμ)^2)
     γ = MUON_MASS / eμ
     eγ_μrf = γ * eγ * (1 - β * cl)
-    dBdy((2 / massμ) * eγ_μrf) / (eμ * (1 - cl * β))
+    dBdy((2 / mμ) * eγ_μrf) / (eμ * (1 - cl * β))
 end
 
 function decay_spectrum_muon(eγ::Real, eμ::Real)
-    eμ < massμ && return zero(typeof(eγ))
+    eμ < mμ && return zero(typeof(eγ))
 
     β = sqrt(1 - (MUON_MASS / eμ)^2)
     γ = MUON_MASS / eμ
 
-    eγ_max = (massμ - masse^2 / massμ) * γ * (1 + β) / 2
+    eγ_max = (mμ - me^2 / mμ) * γ * (1 + β) / 2
 
     (eγ < 0 || eγ > eγ_max) && return zero(typeof(eγ))
 
     nodes, weights = gausslegendre(15)
-    sum(weights .* integand.(nodes, eγ, eμ))
+    sum(weights .* dnde_muon_integrand.(nodes, eγ, eμ))
 end
