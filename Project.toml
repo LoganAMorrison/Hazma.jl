@@ -3,6 +3,9 @@ uuid = "32b09556-f8df-463c-b651-8a746e89c621"
 authors = ["Logan A Morrison and Adam Coogan"]
 version = "0.1.0"
 
+[deps]
+FastGaussQuadrature = "442a2c76-b920-505d-bb47-c5924d526838"
+
 [compat]
 julia = "1.2"
 
