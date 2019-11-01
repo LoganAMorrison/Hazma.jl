@@ -56,6 +56,11 @@ export decay_spectrum_neutral_pion
 include("decay/charged_pion.jl")
 export decay_spectrum_charged_pion
 
+include("positron/muon.jl")
+export positron_spectrum_muon
+include("positron/charged_pion.jl")
+export positron_spectrum_charged_pion
+
 include("theory.jl")
 export list_annihilation_final_states, σ_χχ, br_χχ, dnde_γ, lines_γ, dnde_e, lines_e
 include("scalar.jl")
