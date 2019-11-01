@@ -1,6 +1,14 @@
 module Hazma
 
 using FastGaussQuadrature
+using DelimitedFiles
+using Interpolations
+using SpecialFunctions
+using QuadGK
+using Roots
+using DifferentialEquations
+using ODEInterfaceDiffEq
+using ForwardDiff
 
 include("constants.jl")
 export me, ELECTRON_MASS;
