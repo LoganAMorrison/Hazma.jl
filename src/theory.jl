@@ -4,6 +4,23 @@ abstract type AbstractTheory end
 """A theory width an s-channel mediator."""
 abstract type AbstractTheoryMediator <: AbstractTheory end
 
+# ------------------- #
+# Interface functions #
+# ------------------- #
+
+# TODO: given a bunch of functions named `σ_χχ_to_ab`, should be able to
+# automatically generate `σ_χχ(e_cm, mod, fs)` using a macro along with
+# `list_annihilation_final_states`! Can also do this for `Γ_med`, and maybe for
+# the spectrum functions if we think about it a bit. This would make it really
+# easy to subclass any of the built-in generic models.
+#
+# For dndeᵧ functions, could have a function operating on each type that
+# returns the relevant final states and whether they have FSR and/or decay
+# contributions. These can then be converted to function names like `dndeᵧ_abγ`
+# (for the FSR contribution) and `dndeᵧ_ab` (for the decay contribution). It's
+# simpler for `dndeₑ` because there is no such thing as producing an e⁻ via
+# FSR.
+
 """
     list_annihilation_final_states(mod::AbstractTheory)
 
@@ -26,7 +43,7 @@ list_decay_final_states(mod::AbstractTheoryMediator) = throw(ErrorException("not
 Returns the cross section for DM annihilating with center-of-mass energy `e_cm`
 into the final state `fs`.
 """
-σ_χχ(e_cm::Float64, mod::AbstractTheory, fs::String) = throw(ErrorException("not implemented"))
+σ_χχ(e_cm::Real, mod::AbstractTheory, fs::String) = throw(ErrorException("not implemented"))
 
 """
     Γ_med(mod, fs)
@@ -38,11 +55,15 @@ Returns the mediator partial width for decay into the final state `fs`.
 # TODO: not sure if we'll need this
 # σ_χχ_fns(mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dnde_γ(eγ::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
-lines_γ(eγ::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeᵧ(eᵧ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+lines_γ(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dnde_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
-lines_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeₑ(eₑ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+lines_e(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+
+# --------------------- #
+# Implemented functions #
+# --------------------- #
 
 # TODO: could maybe generate the code below with macros!
 
@@ -52,7 +73,7 @@ lines_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException
 Returns the total cross section for DM annihilating with center-of-mass energy
 `e_cm`.
 """
-function σ_χχ(e_cm::Float64, mod::AbstractTheory)
+function σ_χχ(e_cm::Real, mod::AbstractTheory)
     σ_tot = 0.0
     for fs in list_annihilation_final_states(mod)
         σ_tot += σ_χχ(e_cm, mod, fs)
@@ -66,7 +87,7 @@ end
 Returns a `Dict` of branching fractions for DM annihilating with center-of-mass
 energy `e_cm` into each available final state.
 """
-function br_χχ(e_cm::Float64, mod::AbstractTheory)
+function br_χχ(e_cm::Real, mod::AbstractTheory)
     brs = Dict{String,Float64}()
 
     σ_tot = 0.0
