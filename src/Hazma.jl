@@ -53,4 +53,8 @@ export list_annihilation_final_states, σ_χχ, br_χχ, dnde_γ, lines_γ, dnde
 include("scalar.jl")
 export ScalarMediator, HiggsPortal, HeavyQuark
 
+include("relic_density/relic_density.jl")
+export solve_boltzmann
+export relic_density
+
 end # module
