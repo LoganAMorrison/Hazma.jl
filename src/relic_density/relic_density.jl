@@ -1,15 +1,4 @@
-using DelimitedFiles
-using Interpolations
-using SpecialFunctions
-using QuadGK
-using Roots
-using DifferentialEquations
-using ODEInterfaceDiffEq
-using ForwardDiff
-using Plots
-
-include("../constants.jl")
-
+# Load SM data: T, √g⋆, heff, geff
 _sm_data = readdlm(joinpath(string(@__DIR__), "smdof.csv"), ',', skipstart = 1);
 _sm_tempetatures = _sm_data[:, 1] * 1e3;  # convert to MeV
 _sm_sqrt_gstars = _sm_data[:, 2];
@@ -57,8 +46,9 @@ sm_entropy_density(T::Real) = 2 * π^2 / 45 * _sm_heff(T) * T^3;
 """
     neq(T::Real, m::Float64[; g=2.0, stats=:fermion])
 
-Compute the equilibrium number density of a particle with mass `m` and
-temperature `T`. For fermions, use `stats=:fermion` (`stats=:boson` for bosons).
+Compute the equilibrium number density of a particle with mass
+`m` and temperature `T`. For fermions, use `stats=:fermion`
+(`stats=:boson` for bosons).
 """
 function neq(T::Real, m::Float64; g::Float64 = 2.0, stats::Symbol = :fermion)
     if m == 0
@@ -218,7 +208,7 @@ function xstar_root_eqn(xstar::Real, model; δ::Float64 = 0.5 * (sqrt(5) - 1))
     λ = sqrt(π / 45) * model.mx * PLANK_MASS * sm_sqrt_gstar(T)
     tcs = thermal_cross_section(xstar, model)
     _yeq = yeq(T, model.mx)
-    dyeq = ForwardDiff.derivative(x->yeq(model.mx / x, model.mx), xstar)
+    dyeq = ForwardDiff.derivative(x -> yeq(model.mx / x, model.mx), xstar)
     return xstar^2 * dyeq + λ * Δ * tcs * _yeq^2
 end
 
