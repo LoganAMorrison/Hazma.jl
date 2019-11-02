@@ -1,21 +1,17 @@
-
 """
     positron_spectrum_muon_rf(eng_p::Real)
 
 Returns the electron/positron spectrum from a muon in the muon rest frame given
-a electron/positron energy `ep`.
+a electron/positron energy `ep`. Note this spectrum is from μ→eνν.
 """
 function positron_spectrum_muon_rf(ep::Real)
     r = me / mμ
-    s = me^2 - 2 * ep * mμ + mμ^2
-    smax = (mμ - me)^2
-    smin = 0.0
+    ϵ = ep / mμ
 
-    (s <= smin || smax <= s) && return 0.0
+    (ϵ < r || (1 + r^2) / 2 < ϵ) && return 0.0
 
-    return 2 * mμ *
-           (2 * (mμ^4 * (r^2 - 1)^2 + mμ^2 * (1 + r^2) * s - 2 * s^2) *
-            sqrt(mμ^4 * (r^2 - 1)^2 - 2 * mμ^2 * (1 + r^2) * s + s^2)) / mμ^8
+    ((16 * sqrt(ϵ^2 - r^2) * (ϵ * (-3 + 4 * ϵ) + (2 - 3 * ϵ) * r^2)) /
+     (mμ * (-1 + 8 * r^2 - 8 * r^6 + r^8 + 24 * r^4 * log(r))))
 end
 
 """
@@ -28,16 +24,22 @@ positron spectrum from the muon given a electron/positron angle `cosθ`, energy
 function positron_spectrum_muon_integrand(cosθ::Real, ep::Real, eμ::Real)
     ep < me && return 0.0
 
-    p = sqrt(ep^2 - me^2)
+    p = sqrt(eμ^2 - mμ^2)
     γ = eμ / mμ
-    β = sqrt(1.0 - (mμ / eμ)^2)
-    eμrf = γ * (ep - p * β * cosθ)
-    jac = (p / (2.0 *
-            sqrt((1 + (β * cosθ)^2) * ep^2 - (1 + β^2 * (-1 + cosθ^2)) * me^2 -
-                 2 * β * cosθ * ep * p) *
-            γ))
+    β = p / eμ
+    ϵ = ep / mμ
 
-    positron_spectrum_muon_rf(eμrf) * jac
+    eμrf = γ * (ep - sqrt(ep^2 - me^2) * β * cosθ)
+
+    r = me / mμ
+    ϵrf = eμrf / mμ
+
+    (1 + r^2) / 2 < ϵrf && return 0.0
+
+    jac = ((((1 - β^2) * γ^2 * sqrt(ϵ^2 - r^2)) /
+            sqrt(-r^2 + γ^2 * (ϵ - β * cosθ * sqrt(ϵ^2 - r^2))^2)))
+
+    positron_spectrum_muon_rf(eμrf) * jac / 2
 end
 
 """
@@ -48,7 +50,7 @@ the muon given an arbitrary muon energy `eμ`.
 """
 function positron_spectrum_muon(ep::Real, eμ::Real)
     eμ < mμ && return 0.0
-
-    nodes, weights = gausslegendre(15)
-    sum(weights .* positron_spectrum_muon_integrand.(nodes, ep, eμ))
+    eμ == mμ && return positron_spectrum_muon_rf(ep)
+    f(cosθ) = positron_spectrum_muon_integrand(cosθ, ep, eμ)
+    quadgk(f, -1, 1)[1]
 end

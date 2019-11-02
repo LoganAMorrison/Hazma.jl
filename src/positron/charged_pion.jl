@@ -13,7 +13,7 @@ function positron_spectrum_charged_pion_integrand(
     p = sqrt(ep^2 - me^2)
     γ = eπ / mπ
     β = sqrt(1.0 - (mπ / eπ)^2)
-    jac = (p / (2. * sqrt((1 + (β * cosθ)^2) * ep^2 -
+    jac = (p / (2 * sqrt((1 + (β * cosθ)^2) * ep^2 -
            (1 + β^2 * (-1 + cosθ^2)) * me^2 -
             2 * β * cosθ * ep * p) * γ))
 
