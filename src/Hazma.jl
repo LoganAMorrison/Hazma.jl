@@ -10,31 +10,6 @@ using DifferentialEquations
 using ODEInterfaceDiffEq
 using ForwardDiff
 
-include("decay/muon.jl")
-export decay_spectrum_muon
-include("decay/neutral_pion.jl")
-export decay_spectrum_neutral_pion
-include("decay/charged_pion.jl")
-export decay_spectrum_charged_pion
-
-include("positron/muon.jl")
-export positron_spectrum_muon
-include("positron/charged_pion.jl")
-export positron_spectrum_charged_pion
-
-include("theory.jl")
-export list_annihilation_final_states, σ_χχ, br_χχ
-export list_decay_final_states, Γ_med, br_med
-export dndeᵧ, lines_γ
-export dndeₑ, lines_e
-export σ_χχ_to_ee, σ_χχ_to_μμ, σ_χχ_to_π⁰π⁰, σ_χχ_to_ππ, σ_χχ_to_γγ
-include("scalar.jl")
-export ScalarMediator, HiggsPortal, HeavyQuark
-
-include("relic_density/relic_density.jl")
-export solve_boltzmann
-export relic_density
-
 include("constants.jl")
 export me, ELECTRON_MASS;
 export mμ, MUON_MASS;
@@ -73,5 +48,30 @@ export fπ⁰, NEUTRAL_PION_DECAY_CONSTANT;
 export fπ, CHARGED_PION_DECAY_CONSTANT;
 export fk, CHARGED_KAON_DECAY_CONSTANT;
 export B0;
+
+include("decay/muon.jl")
+export decay_spectrum_muon
+include("decay/neutral_pion.jl")
+export decay_spectrum_neutral_pion
+include("decay/charged_pion.jl")
+export decay_spectrum_charged_pion
+
+include("positron/muon.jl")
+export positron_spectrum_muon
+include("positron/charged_pion.jl")
+export positron_spectrum_charged_pion
+
+include("theory.jl")
+export list_annihilation_final_states, σ_χχ, br_χχ
+export list_decay_final_states, Γ_med, br_med
+export dndeᵧ, lines_γ
+export dndeₑ, lines_e
+export σ_χχ_to_ee, σ_χχ_to_μμ, σ_χχ_to_π⁰π⁰, σ_χχ_to_ππ, σ_χχ_to_γγ
+include("scalar.jl")
+export ScalarMediator, HiggsPortal, HeavyQuark
+
+include("relic_density/relic_density.jl")
+export solve_boltzmann
+export relic_density
 
 end # module
