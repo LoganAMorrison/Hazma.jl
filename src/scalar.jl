@@ -4,47 +4,71 @@ import Base.getproperty
 
 abstract type AbstractScalarMediator <: AbstractTheoryMediator end
 
-# Generic model
-mutable struct ScalarMediator <: AbstractScalarMediator
-    mχ::Real
-    ms::Real
-    gsχχ::Real
-    gsff::Real
-    gsGG::Real
-    gsFF::Real
-    Λ::Real
+# mutable struct ScalarMediator <: AbstractScalarMediator
+#     mχ::Real
+#     ms::Real
+#     gsχχ::Real
+#     gsff::Real
+#     gsGG::Real
+#     gsFF::Real
+#     Λ::Real
+#
+#     function ScalarMediator(mχ, ms, gsχχ, gsff, gsGG, gsFF, Λ)
+#         if mχ < 0
+#             throw(error("DM mass must be nonnegative"))
+#         elseif ms < 0
+#             throw(error("mediator mass must be nonnegative"))
+#         elseif Λ < 0
+#             throw(error("dimension 5 operator mass scale must be nonnegative"))
+#         else
+#             return new(mχ, ms, gsχχ, gsff, gsGG, gsFF, Λ)
+#         end
+#     end
+# end
 
-    function ScalarMediator(mχ, ms, gsχχ, gsff, gsGG, gsFF, Λ)
-        if mχ < 0
-            throw(error("DM mass must be nonnegative"))
-        elseif ms < 0
-            throw(error("mediator mass must be nonnegative"))
-        elseif Λ < 0
-            throw(error("dimension 5 operator mass scale must be nonnegative"))
-        else
-            return new(mχ, ms, gsχχ, gsff, gsGG, gsFF, Λ)
-        end
-    end
-end
+# mutable struct HiggsPortal <: AbstractScalarMediator
+#     mχ::Real
+#     ms::Real
+#     gsχχ::Real
+#     sinθ::Real
+#
+#     function HiggsPortal(mχ, ms, gsχχ, sinθ)
+#         if mχ < 0
+#             throw(error("DM mass must be nonnegative"))
+#         elseif ms < 0
+#             throw(error("mediator mass must be nonnegative"))
+#         elseif sinθ < -1 || sinθ > 1
+#             throw(error("sin(θ) must be between -1 and 1"))
+#         else
+#             return new(mχ, ms, gsχχ, sinθ)
+#         end
+#     end
+# end
 
-mutable struct HiggsPortal <: AbstractScalarMediator
-    mχ::Real
-    ms::Real
-    gsχχ::Real
-    sinθ::Real
+# mutable struct HeavyQuark <: AbstractScalarMediator
+#     mχ::Real
+#     ms::Real
+#     gsχχ::Real
+#     gsQQ::Real
+#     mQ::Real
+#     QQ::Real
+#
+#     function HeavyQuark(mχ, ms, gsχχ, gsQQ, mQ, QQ)
+#         if mχ < 0
+#             throw(error("DM mass must be nonnegative"))
+#         elseif ms < 0
+#             throw(error("mediator mass must be nonnegative"))
+#         elseif mQ < 0
+#             throw(error("heavy quark mass must be nonnegative"))
+#         else
+#             return new(mχ, ms, gsχχ, gsQQ, mQ, QQ)
+#         end
+#     end
+# end
 
-    function HiggsPortal(mχ, ms, gsχχ, sinθ)
-        if mχ < 0
-            throw(error("DM mass must be nonnegative"))
-        elseif ms < 0
-            throw(error("mediator mass must be nonnegative"))
-        elseif sinθ < -1 || sinθ > 1
-            throw(error("sin(θ) must be between -1 and 1"))
-        else
-            return new(mχ, ms, gsχχ, sinθ)
-        end
-    end
-end
+@make_mediator_theory ScalarMediator [:mχ, :ms, :gsχχ, :gsff, :gsGG, :gsFF, :Λ] AbstractTheoryMediator
+@make_mediator_theory HiggsPortal [:mχ, :ms, :gsχχ, :sinθ] AbstractScalarMediator
+@make_mediator_theory HeavyQuark [:mχ, :ms, :gsχχ, :gsQQ, :mQ, :QQ] AbstractScalarMediator
 
 function Base.getproperty(mod::HiggsPortal, param::Symbol)
     if param == :gsff
@@ -57,27 +81,6 @@ function Base.getproperty(mod::HiggsPortal, param::Symbol)
         return VH
     else
         return getfield(mod, param)
-    end
-end
-
-mutable struct HeavyQuark <: AbstractScalarMediator
-    mχ::Real
-    ms::Real
-    gsχχ::Real
-    gsQQ::Real
-    mQ::Real
-    QQ::Real
-
-    function HeavyQuark(mχ, ms, gsχχ, gsQQ, mQ, QQ)
-        if mχ < 0
-            throw(error("DM mass must be nonnegative"))
-        elseif ms < 0
-            throw(error("mediator mass must be nonnegative"))
-        elseif mQ < 0
-            throw(error("heavy quark mass must be nonnegative"))
-        else
-            return new(mχ, ms, gsχχ, gsQQ, mQ, QQ)
-        end
     end
 end
 
