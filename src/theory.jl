@@ -4,6 +4,10 @@ abstract type AbstractTheory end
 """A theory width an s-channel mediator."""
 abstract type AbstractTheoryMediator <: AbstractTheory end
 
+# ------------------- #
+# Interface functions #
+# ------------------- #
+
 """
     list_annihilation_final_states(mod::AbstractTheory)
 
@@ -26,7 +30,7 @@ list_decay_final_states(mod::AbstractTheoryMediator) = throw(ErrorException("not
 Returns the cross section for DM annihilating with center-of-mass energy `e_cm`
 into the final state `fs`.
 """
-σ_χχ(e_cm::Float64, mod::AbstractTheory, fs::String) = throw(ErrorException("not implemented"))
+σ_χχ(e_cm::Real, mod::AbstractTheory, fs::String) = throw(ErrorException("not implemented"))
 
 """
     Γ_med(mod, fs)
@@ -38,13 +42,15 @@ Returns the mediator partial width for decay into the final state `fs`.
 # TODO: not sure if we'll need this
 # σ_χχ_fns(mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dnde_γ(eγ::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
-lines_γ(eγ::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeᵧ_χχ(eᵧ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+lines_γ(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dnde_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
-lines_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeₑ_χχ(eₑ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+lines_e(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-# TODO: could maybe generate the code below with macros!
+# --------------------- #
+# Implemented functions #
+# --------------------- #
 
 """
     σ_χχ(e_cm, mod)
@@ -52,7 +58,7 @@ lines_e(e_e::Float64, e_cm::Float64, mod::AbstractTheory) = throw(ErrorException
 Returns the total cross section for DM annihilating with center-of-mass energy
 `e_cm`.
 """
-function σ_χχ(e_cm::Float64, mod::AbstractTheory)
+function σ_χχ(e_cm::Real, mod::AbstractTheory)
     σ_tot = 0.0
     for fs in list_annihilation_final_states(mod)
         σ_tot += σ_χχ(e_cm, mod, fs)
@@ -66,7 +72,7 @@ end
 Returns a `Dict` of branching fractions for DM annihilating with center-of-mass
 energy `e_cm` into each available final state.
 """
-function br_χχ(e_cm::Float64, mod::AbstractTheory)
+function br_χχ(e_cm::Real, mod::AbstractTheory)
     brs = Dict{String,Float64}()
 
     σ_tot = 0.0
