@@ -118,7 +118,6 @@ end
 # Mediator decay widths #
 # --------------------- #
 
-# TODO: generate with macro
 function Γ_med(mod::AbstractScalarMediator, fs::String)
     if fs == "γ γ"
         return Γ_s_to_γγ(mod)
@@ -189,7 +188,6 @@ function Γ_s_to_ff(mod::AbstractScalarMediator, mf::Real)
               sqrt(-4 * mf^2 + mod.ms^2)) / (32.0 * mod.ms^2 * π * VH^2))
 end
 
-# TODO: generate with macro
 Γ_s_to_ee(mod::AbstractScalarMediator) = Γ_s_to_ff(mod, me)
 Γ_s_to_μμ(mod::AbstractScalarMediator) = Γ_s_to_ff(mod, mμ)
 Γ_s_to_ee(mod::HeavyQuark) = 0.0
@@ -199,7 +197,6 @@ end
 # DM self-annihilation cross sections #
 # ----------------------------------- #
 
-# TODO: generate with macro
 function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
     if fs == "e⁺ e⁻"
         return σ_χχ_to_ee(e_cm, mod)
@@ -232,7 +229,6 @@ function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
              (mod.ms^4 - 2.0 * mod.ms^2 * e_cm^2 + e_cm^4 + mod.ms^2 * Γs^2)))
 end
 
-# TODO: generate with macro
 σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) =
     σ_χχ_to_ff(e_cm, mod, me)
 σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator) =
@@ -368,7 +364,6 @@ function dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::AbstractScalarMediato
     return 2.0 * decay_spectrum_muon(eᵧ, e_cm / 2.0)
 end
 
-# TODO: generate with macro
 dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::HeavyQuark) = zero(eᵧ)
 
 # TODO: other final states!
@@ -377,14 +372,13 @@ dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::HeavyQuark) = zero(eᵧ)
 # e⁺/e⁻ spectra #
 # ------------- #
 
-# TODO: generate with a macro
-function dndeₑ(eₑ::Real, e_cm::Real, mod::AbstractScalarMediator, fs::String)
+function dndeₑ_χχ(eₑ::Real, e_cm::Real, mod::AbstractScalarMediator, fs::String)
     if fs == "π⁺ π⁻"
-        return dndeₑ_ππ(eₑ, e_cm, mod)
+        return dndeₑ_χχ_to_ππ(eₑ, e_cm, mod)
     elseif fs == "μ μ"
-        return dndeₑ_μμ(eₑ, e_cm, mod)
+        return dndeₑ_χχ_to_μμ(eₑ, e_cm, mod)
     elseif fs == "s s"
-        return dndeₑ_ss(eₑ, e_cm, mod)
+        return dndeₑ_χχ_to_ss(eₑ, e_cm, mod)
     else
         return 0.0
     end
@@ -401,7 +395,7 @@ end
 
 Positron/electron spectrum from dark matter annihilating into charged pions.
 """
-dndeₑ_ππ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
+dndeₑ_χχ_to_ππ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
     positron_spectrum_charged_pion(eₑ, e_cm / 2.0)
 
 """
@@ -409,10 +403,10 @@ dndeₑ_ππ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
 
 Positron/electron spectrum from dark matter annihilating into muons.
 """
-dndeₑ_μμ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
+dndeₑ_χχ_to_μμ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
     positron_spectrum_muon(eₑ, e_cm / 2.0)
 
-function dndeₑ_ss_integrand(
+function dndeₑ_χχ_to_ss_integrand(
     cosθ::Real,
     eₑ::Real,
     es::Real,
@@ -447,7 +441,7 @@ end
 
 Positron/electron spectrum from dark matter annihilating into scalar mediators.
 """
-function dndeₑ_ss(eₑ::Real, es::Real, mod::AbstractScalarMediator; fs::String="total")
+function dndeₑ_χχ_to_ss(eₑ::Real, es::Real, mod::AbstractScalarMediator; fs::String="total")
     es < ms && return 0.0
 
     lines_contrib = 0.0
@@ -466,7 +460,7 @@ function dndeₑ_ss(eₑ::Real, es::Real, mod::AbstractScalarMediator; fs::Strin
 
     if fs == "total" || fs == "π⁺ π⁻" || fs == "μ⁺ μ⁻"
         nodes, weights = gausslegendre(50)
-        f(cosθ) = dndeₑ_ss_integrand(cosθ, eₑ, es, mod, fs)
+        f(cosθ) = dndeₑ_χχ_to_ss_integrand(cosθ, eₑ, es, mod, fs)
         result = sum(weights .* f.(nodes))
         return result + lines_contrib
     end

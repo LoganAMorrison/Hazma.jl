@@ -8,19 +8,6 @@ abstract type AbstractTheoryMediator <: AbstractTheory end
 # Interface functions #
 # ------------------- #
 
-# TODO: given a bunch of functions named `σ_χχ_to_ab`, should be able to
-# automatically generate `σ_χχ(e_cm, mod, fs)` using a macro along with
-# `list_annihilation_final_states`! Can also do this for `Γ_med`, and maybe for
-# the spectrum functions if we think about it a bit. This would make it really
-# easy to subclass any of the built-in generic models.
-#
-# For dndeᵧ functions, could have a function operating on each type that
-# returns the relevant final states and whether they have FSR and/or decay
-# contributions. These can then be converted to function names like `dndeᵧ_abγ`
-# (for the FSR contribution) and `dndeᵧ_ab` (for the decay contribution). It's
-# simpler for `dndeₑ` because there is no such thing as producing an e⁻ via
-# FSR.
-
 """
     list_annihilation_final_states(mod::AbstractTheory)
 
@@ -55,17 +42,15 @@ Returns the mediator partial width for decay into the final state `fs`.
 # TODO: not sure if we'll need this
 # σ_χχ_fns(mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dndeᵧ(eᵧ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeᵧ_χχ(eᵧ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 lines_γ(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
-dndeₑ(eₑ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
+dndeₑ_χχ(eₑ::Real, e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 lines_e(e_cm::Real, mod::AbstractTheory) = throw(ErrorException("not implemented"))
 
 # --------------------- #
 # Implemented functions #
 # --------------------- #
-
-# TODO: could maybe generate the code below with macros!
 
 """
     σ_χχ(e_cm, mod)
