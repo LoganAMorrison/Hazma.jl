@@ -62,7 +62,11 @@ include("positron/charged_pion.jl")
 export positron_spectrum_charged_pion
 
 include("theory.jl")
-export list_annihilation_final_states, σ_χχ, br_χχ, dndeᵧ, lines_γ, dndeₑ, lines_e
+export list_annihilation_final_states, σ_χχ, br_χχ
+export list_decay_final_states, Γ_med, br_med
+export dndeᵧ, lines_γ
+export dndeₑ, lines_e
+export σ_χχ_to_ee, σ_χχ_to_μμ, σ_χχ_to_π⁰π⁰, σ_χχ_to_ππ, σ_χχ_to_γγ
 include("scalar.jl")
 export ScalarMediator, HiggsPortal, HeavyQuark
 
