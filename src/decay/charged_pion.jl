@@ -1,6 +1,5 @@
-const ENG_GAM_MAX_MU_RF = (MUON_MASS^2 - ELECTRON_MASS^2) / (2MUON_MASS)
-const ENG_MU_PI_RF = (CHARGED_PION_MASS^2 + MUON_MASS^2) / (2CHARGED_PION_MASS)
-
+const ENG_GAM_MAX_MU_RF = (mμ^2 - me^2) / (2mμ)
+const ENG_MU_PI_RF = (mπ^2 + mμ^2) / (2mπ)
 
 """
     dnde_pi_to_lnug(eγ::Real, ml::Real)
@@ -10,8 +9,8 @@ pion into a lepton with mass `ml`.
 """
 function dnde_pi_to_lnug(eγ::Real, ml::Real)
 
-    x = 2 * eγ / CHARGED_PION_MASS
-    r = (ml / CHARGED_PION_MASS)^2
+    x = 2 * eγ / mπ
+    r = (ml / mπ)^2
 
     (x < 0 || (1 - r) < x) && return zero(typeof(eγ))
 
@@ -20,23 +19,23 @@ function dnde_pi_to_lnug(eγ::Real, ml::Real)
 
     # Numerator terms with no log
     f = (r + x - 1) *
-        (CHARGED_PION_MASS^2 * x^4 * (AXIAL_FORM_FACTOR_PI^2 + F_V^2) *
+        (mπ^2 * x^4 * (AXIAL_FORM_FACTOR_PI^2 + F_V^2) *
          (r^2 - r * x + r - 2 * (x - 1)^2) -
-         12 * sqrt(2) * CHARGED_PION_DECAY_CONSTANT * CHARGED_PION_MASS * r *
+         12 * sqrt(2) * fπ * mπ * r *
          (x - 1) * x^2 * (AXIAL_FORM_FACTOR_PI * (r - 2 * x + 1) + F_V * x) -
-         24 * CHARGED_PION_DECAY_CONSTANT^2 * r * (x - 1) *
+         24 * fπ^2 * r * (x - 1) *
          (4 * r * (x - 1) + (x - 2)^2))
 
     # Numerator terms with log
-    g = 12 * sqrt(2) * CHARGED_PION_DECAY_CONSTANT * r * (x - 1)^2 *
+    g = 12 * sqrt(2) * fπ * r * (x - 1)^2 *
         log(r / (1 - x)) *
-        (CHARGED_PION_MASS * x^2 *
+        (mπ * x^2 *
          (AXIAL_FORM_FACTOR_PI * (x - 2 * r) - F_V * x) +
-         sqrt(2) * CHARGED_PION_DECAY_CONSTANT *
+         sqrt(2) * fπ *
          (2 * r^2 - 2 * r * x - x^2 + 2 * x - 2))
 
-    ALPHA_EM * (f + g) /
-    (24 * π * CHARGED_PION_MASS * CHARGED_PION_DECAY_CONSTANT^2 * (r - 1)^2 *
+    αem * (f + g) /
+    (24 * π * mπ * fπ^2 * (r - 1)^2 *
      (x - 1)^2 * r * x)
 end
 
@@ -55,11 +54,11 @@ Then, boosting into the pion rest frame, then to the mu rest frame, we get the
 maximum allowed energy in the lab frame.
 """
 function eγ_max(eπ::Real)
-    βπ = sqrt(1 - (CHARGED_PION_MASS / eπ)^2)
-    γπ = eπ / CHARGED_PION_MASS
+    βπ = sqrt(1 - (mπ / eπ)^2)
+    γπ = eπ / mπ
 
-    βμ = sqrt(1 - (MUON_MASS / ENG_MU_PI_RF)^2)
-    γμ = ENG_MU_PI_RF / MUON_MASS
+    βμ = sqrt(1 - (mμ / ENG_MU_PI_RF)^2)
+    γμ = ENG_MU_PI_RF / mμ
 
     ENG_GAM_MAX_MU_RF * γμ * γπ * (1 + βπ) * (1 + βμ)
 end
@@ -77,11 +76,11 @@ function dnde_pi_integrand(
     eπ::Real;
     mode::String = "total",
 )
-    βπ = sqrt(1 - (CHARGED_PION_MASS / eπ)^2)
-    γπ = eπ / CHARGED_PION_MASS
+    βπ = sqrt(1 - (mπ / eπ)^2)
+    γπ = eπ / mπ
 
-    βμ = sqrt(1 - (MUON_MASS / ENG_MU_PI_RF)^2)
-    γμ = ENG_MU_PI_RF / MUON_MASS
+    βμ = sqrt(1 - (mμ / ENG_MU_PI_RF)^2)
+    γμ = ENG_MU_PI_RF / mμ
 
     eγ_π_rf = eγ * γπ * (1 - βπ * cosθ)
     jac = 1 / (2γπ * abs(1 - βπ * cosθ))
@@ -91,12 +90,12 @@ function dnde_pi_integrand(
     dnde_enug = zero(typeof(eγ))
 
     if 0 < eγ_π_rf && eγ_π_rf < ENG_GAM_MAX_MU_RF * γμ * (1 + βμ)
-        dnde_munu = BR_PI_TO_MUNU * jac *
+        dnde_munu = br_π_μμ * jac *
                     decay_spectrum_muon(eγ_π_rf, ENG_MU_PI_RF)
     end
 
-    dnde_munug = BR_PI_TO_MUNU * jac * dnde_pi_to_lnug(eγ_π_rf, MUON_MASS)
-    dnde_enug = BR_PI_TO_ENU * jac * dnde_pi_to_lnug(eγ_π_rf, ELECTRON_MASS)
+    dnde_munug = br_π_μμ * jac * dnde_pi_to_lnug(eγ_π_rf, mμ)
+    dnde_enug = br_π_eν * jac * dnde_pi_to_lnug(eγ_π_rf, me)
 
     if mode == "total"
         return dnde_munu + dnde_munug + dnde_enug
@@ -119,12 +118,12 @@ Returns the radiative spectrum value from charged pion given a γ-ray energy
 `mode` with options "total", "μν", "μνγ" or "eνγ"
 """
 function decay_spectrum_charged_pion(eγ::Real, eπ::Real; mode::String = "total")
-    eπ < CHARGED_PION_MASS && return zero(typeof(eγ))
+    eπ < mπ && return zero(typeof(eγ))
 
     nodes, weights = gausslegendre(15)
     sum(weights .* dnde_pi_integrand.(nodes, eγ, eπ; mode = mode))
 end
 
 
-decay_spectrum_charged_pion(0.1, 2 * CHARGED_PION_MASS)
-decay_spectrum_muon(0.1, 2 * MUON_MASS)
+decay_spectrum_charged_pion(0.1, 2 * mπ)
+decay_spectrum_muon(0.1, 2 * mμ)

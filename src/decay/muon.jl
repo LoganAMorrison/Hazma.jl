@@ -1,7 +1,7 @@
 function j_plus(y::Real)
     yconj = 1 - y
-    r = (ELECTRON_MASS / MUON_MASS)^2
-    preFactor = ALPHA_EM * yconj / 6π
+    r = (me / mμ)^2
+    preFactor = αem * yconj / 6π
     term1 = 3log(yconj / r) - 17 / 2
     term2 = -3log(yconj / r) + 7
     term3 = 2log(yconj / r) - 13 / 3
@@ -10,8 +10,8 @@ end
 
 function j_minus(y::Real)
     yconj = 1 - y
-    r = (ELECTRON_MASS / MUON_MASS)^2
-    preFactor = ALPHA_EM * yconj^2 / 6π
+    r = (me / mμ)^2
+    preFactor = αem * yconj^2 / 6π
     term1 = 3log(yconj / r) - 93 / 12
     term2 = -4log(yconj / r) + 29 / 3
     term3 = 2log(yconj / r) - 55 / 12
@@ -19,13 +19,13 @@ function j_minus(y::Real)
 end
 
 function dBdy(y::Real)
-    (y < 0 || y > 1 - (ELECTRON_MASS / MUON_MASS)^2) && return zero(typeof(y))
+    (y < 0 || y > 1 - (me / mμ)^2) && return zero(typeof(y))
     (2.0 / y) * (j_plus(y) + j_minus(y))
 end
 
 function dnde_muon_integrand(cl::Real, eγ::Real, eμ::Real)
-    β = sqrt(1 - (MUON_MASS / eμ)^2)
-    γ = MUON_MASS / eμ
+    β = sqrt(1 - (mμ / eμ)^2)
+    γ = mμ / eμ
     eγ_μrf = γ * eγ * (1 - β * cl)
     dBdy((2 / mμ) * eγ_μrf) / (eμ * (1 - cl * β))
 end
@@ -33,8 +33,8 @@ end
 function decay_spectrum_muon(eγ::Real, eμ::Real)
     eμ < mμ && return zero(typeof(eγ))
 
-    β = sqrt(1 - (MUON_MASS / eμ)^2)
-    γ = MUON_MASS / eμ
+    β = sqrt(1 - (mμ / eμ)^2)
+    γ = mμ / eμ
 
     eγ_max = (mμ - me^2 / mμ) * γ * (1 + β) / 2
 
