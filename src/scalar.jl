@@ -46,17 +46,17 @@ mutable struct HiggsPortal <: AbstractScalarMediator
     end
 end
 
-function Base.getproperty(model::HiggsPortal, param::Symbol)
+function Base.getproperty(mod::HiggsPortal, param::Symbol)
     if param == :gsff
-        return model.sinθ
+        return mod.sinθ
     elseif param == :gsGG
-        return 3 * model.sinθ
+        return 3 * mod.sinθ
     elseif param == :gsFF
-        return -5 / 6 * model.sinθ
+        return -5 / 6 * mod.sinθ
     elseif param == :Λ
         return VH
     else
-        return getfield(model, param)
+        return getfield(mod, param)
     end
 end
 
@@ -81,36 +81,36 @@ mutable struct HeavyQuark <: AbstractScalarMediator
     end
 end
 
-function Base.getproperty(model::HeavyQuark, param::Symbol)
+function Base.getproperty(mod::HeavyQuark, param::Symbol)
     if param == :gsff
         return 0.0
     elseif param == :gsGG
-        return model.gsQQ
+        return mod.gsQQ
     elseif param == :gsFF
-        return 0.0
+        return 2.0 * mod.gsQQ * mod.QQ^2
     elseif param == :Λ
-        return model.mQ
+        return mod.mQ
     else
-        return getfield(model, param)
+        return getfield(mod, param)
     end
 end
 
 # Approximately true for all reasonable parameter values
 scalar_vev(::AbstractScalarMediator) = 0.0
 
-function list_decay_final_states(model::AbstractScalarMediator)
+function list_decay_final_states(::AbstractScalarMediator)
     ["e⁺ e⁻", "μ⁺ μ⁻", "γ γ", "π⁰ π⁰", "π⁺ π⁻", "χ χ"]
 end
 
-function list_annihilation_final_states(model::AbstractScalarMediator)
+function list_annihilation_final_states(::AbstractScalarMediator)
     ["e⁺ e⁻", "μ⁺ μ⁻", "γ γ", "π⁰ π⁰", "π⁺ π⁻", "s s"]
 end
 
-function list_decay_final_states(model::HeavyQuark)
-    ["γ γ", "π⁰ π⁰", "π⁺ π⁻", "s s"]
+function list_decay_final_states(::HeavyQuark)
+    ["γ γ", "π⁰ π⁰", "π⁺ π⁻", "χ χ"]
 end
 
-function list_annihilation_final_states(model::HeavyQuark)
+function list_annihilation_final_states(::HeavyQuark)
     ["γ γ", "π⁰ π⁰", "π⁺ π⁻", "s s"]
 end
 
@@ -124,14 +124,18 @@ function Γ_med(mod::AbstractScalarMediator, fs::String)
         return Γ_s_to_γγ(mod)
     elseif fs == "π⁰ π⁰"
         return Γ_s_to_π⁰π⁰(mod)
-    elseif fs =="π⁺ π⁻"
-        return Γ_s_to_π⁺π⁻(mod)
+    elseif fs == "π⁺ π⁻"
+        return Γ_s_to_ππ(mod)
     elseif fs == "χ χ"
         return Γ_s_to_χχ(mod)
-    elseif fs == "e e"
+    elseif fs == "e⁺ e⁻"
         return Γ_s_to_ee(mod)
-    elseif fs == "μ μ"
+    elseif fs == "μ⁺ μ⁻"
         return Γ_s_to_μμ(mod)
+    elseif fs == "all"
+        Γs = Dict(fs => Γ_med(mod, fs) for fs in list_decay_final_states(mod))
+        Γs["total"] = sum(values(Γs))
+        return Γs
     else
         return 0.0
     end
@@ -144,17 +148,17 @@ end
 function Γ_s_to_π⁰π⁰(mod::AbstractScalarMediator)
     (mod.ms < 2mπ⁰) && return 0.0
     vs = scalar_vev(mod)
-    return (sqrt(-4 * 2 * mπ⁰^2 + mod.ms^2) *
-            ((mod.gsGG * (4 * mπ⁰^2 - 2 * mod.ms^2)) /
-             (9 * mod.Λ + 4 * mod.gsGG * vs) +
-             (B0 * (md + mu) *
-              (27 * mod.gsff^2 * mod.Λ^2 * vs *
-               (3 * mod.Λ + 4 * mod.gsGG * vs) - 2 * mod.gsGG * VH^2 *
-               (27 * mod.Λ^2 - 30 * mod.gsGG * mod.Λ * vs +
-                8 * mod.gsGG^2 * vs^2) +
-               mod.gsff *
-               (-81 * mod.Λ^3 * VH + 48 * mod.gsGG^2 * mod.Λ * VH * vs^2))) /
-             (81.0 * mod.Λ^3 * VH^2))^2) / (16.0 * mod.ms^2 * pi)
+
+    return (sqrt(-4 * mπ⁰^2 + mod.ms^2) *
+        ((mod.gsGG * (4 * mπ⁰^2 - 2 * mod.ms^2)) /
+         (9 * mod.Λ + 4 * mod.gsGG * vs) +
+         (B0 * (md + mu) *
+          (27 * mod.gsff^2 * mod.Λ^2 * vs * (3 * mod.Λ + 4 * mod.gsGG * vs) -
+           2 * mod.gsGG * VH^2 *
+           (27 * mod.Λ^2 - 30 * mod.gsGG * mod.Λ * vs + 8 * mod.gsGG^2 * vs^2) +
+           mod.gsff *
+           (-81 * mod.Λ^3 * VH + 48 * mod.gsGG^2 * mod.Λ * VH * vs^2))) /
+         (81.0 * mod.Λ^3 * VH^2))^2) / (16.0 * mod.ms^2 * π)
 end
 
 function Γ_s_to_ππ(mod::AbstractScalarMediator)
@@ -209,11 +213,16 @@ function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
         return σ_χχ_to_ππ(e_cm, mod)
     elseif fs == "s s"
         return σ_χχ_to_ss(e_cm, mod)
+    elseif fs == "all"
+        σs = Dict(fs => σ_χχ(e_cm, mod, fs) for fs in list_annihilation_final_states(mod))
+        σs["total"] = sum(values(σs))
+        return σs
     else
         return 0.
     end
 end
 
+# TODO: WRONG!
 function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
     (e_cm < 2.0mf || e_cm < 2.0 * mod.mχ) && return 0.0
     Γs = Γ_med(mod)
@@ -235,8 +244,8 @@ function σ_χχ_to_γγ(e_cm::Real, mod::AbstractScalarMediator)
     (e_cm < 2.0 * mod.mχ) && return 0.0
 
     Γs = Γ_med(mod)
-    rxs = mod.mχ / e_cm
-    return ((αem^2 * mod.gsFF^2 * mod.gsχχ^2 * e_cm^4 * sqrt(1.0 - 4.0 * rxs^2)) /
+    rχs = mod.mχ / e_cm
+    return ((αem^2 * mod.gsFF^2 * mod.gsχχ^2 * e_cm^4 * sqrt(1.0 - 4.0 * rχs^2)) /
             (64.0 * mod.Λ^2 * π^3 *
              (mod.ms^4 + e_cm^4 + mod.ms^2 * (-2.0 * e_cm^2 + Γs^2))))
 end
@@ -247,16 +256,16 @@ function σ_χχ_to_π⁰π⁰(e_cm::Real, mod::AbstractScalarMediator)
     Γs = Γ_med(mod)
     vs = scalar_vev(mod)
     rπ⁰s = mπ⁰ / e_cm
-    rxs = mod.mχ / e_cm
+    rχs = mod.mχ / e_cm
 
-    return ((mod.gsχχ^2 * sqrt((-1.0 + 4.0 * rπ⁰s^2) * (-1.0 + 4.0 * rxs^2)) *
+    return ((mod.gsχχ^2 * sqrt((-1.0 + 4.0 * rπ⁰s^2) * (-1.0 + 4.0 * rχs^2)) *
              (162.0 * mod.gsGG * mod.Λ^3 * e_cm^2 * (-1.0 + 2.0 * rπ⁰s^2) * VH^2 +
               B0 * (md + mu) * (9.0 * mod.Λ + 4.0 * mod.gsGG * vs) *
-              (27.0 * mod.gsFF^2 * mod.Λ^2 * vs *
-               (3.0 * mod.Λ + 4.0 * mod.gsGG * vs) - 2 * mod.gsGG * VH^2 *
+              (27.0 * mod.gsff^2 * mod.Λ^2 * vs *
+               (3.0 * mod.Λ + 4.0 * mod.gsGG * vs) - 2.0 * mod.gsGG * VH^2 *
                (27.0 * mod.Λ^2 - 30.0 * mod.gsGG * mod.Λ * vs +
                 8.0 * mod.gsGG^2 * vs^2) +
-               mod.gsFF *
+               mod.gsff *
                (-81.0 * mod.Λ^3 * VH + 48.0 * mod.gsGG^2 * mod.Λ * VH * vs^2)))^2) /
             (209952.0 * mod.Λ^6 * π * VH^4 * (9.0 * mod.Λ + 4.0 * mod.gsGG * vs)^2 *
              (mod.ms^4 + e_cm^4 + mod.ms^2 * (-2.0 * e_cm^2 + Γs^2))))
@@ -267,17 +276,17 @@ function σ_χχ_to_ππ(e_cm::Real, mod::AbstractScalarMediator)
 
     Γs = Γ_med(mod)
     vs = scalar_vev(mod)
-    rpis = mπ / e_cm
-    rxs = mod.mχ / e_cm
+    rπs = mπ / e_cm
+    rχs = mod.mχ / e_cm
 
-    return ((mod.gsχχ^2 * sqrt((-1.0 + 4.0 * rpis^2) * (-1.0 + 4.0 * rxs^2)) *
-             (162.0 * mod.gsGG * mod.Λ^3 * e_cm^2 * (-1.0 + 2.0 * rpis^2) * VH^2 +
-              B0 * (md + mu) * (9.0 * mod.Λ + 4 * mod.gsGG * vs) *
-              (27.0 * mod.gsFF^2 * mod.Λ^2 * vs *
+    return ((mod.gsχχ^2 * sqrt((-1.0 + 4.0 * rπs^2) * (-1.0 + 4.0 * rχs^2)) *
+             (162.0 * mod.gsGG * mod.Λ^3 * e_cm^2 * (-1.0 + 2.0 * rπs^2) * VH^2 +
+              B0 * (md + mu) * (9.0 * mod.Λ + 4.0 * mod.gsGG * vs) *
+              (27.0 * mod.gsff^2 * mod.Λ^2 * vs *
                (3.0 * mod.Λ + 4.0 * mod.gsGG * vs) - 2.0 * mod.gsGG * VH^2 *
                (27.0 * mod.Λ^2 - 30.0 * mod.gsGG * mod.Λ * vs +
                 8.0 * mod.gsGG^2 * vs^2) +
-               mod.gsFF *
+               mod.gsff *
                (-81.0 * mod.Λ^3 * VH + 48.0 * mod.gsGG^2 * mod.Λ * VH * vs^2)))^2) /
             (104976.0 * mod.Λ^6 * π * VH^4 * (9.0 * mod.Λ + 4.0 * mod.gsGG * vs)^2 *
              (mod.ms^4 + e_cm^4 + mod.ms^2 * (-2.0 * e_cm^2 + Γs^2))))
@@ -355,14 +364,14 @@ end
 # Decay spectra #
 # ------------- #
 
-function dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::AbstractScalarMediator, mf::Real)
-    return 2.0 * decay_spectrum_muon(eᵧ::Real, eμ::Real)
+function dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::AbstractScalarMediator)
+    return 2.0 * decay_spectrum_muon(eᵧ, e_cm / 2.0)
 end
 
 # TODO: generate with macro
 dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::HeavyQuark) = zero(eᵧ)
 
-
+# TODO: other final states!
 
 # ------------- #
 # e⁺/e⁻ spectra #
