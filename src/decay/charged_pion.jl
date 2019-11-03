@@ -1,3 +1,5 @@
+# functions for computing photon spectrum from charged-pion decay
+
 """
     dndeγ_π_lνγ_πrf(eγ::Real, ml::Real)
 
