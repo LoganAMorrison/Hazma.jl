@@ -42,7 +42,7 @@ function dndeγ_π_decay(eγ::Real, eπ::Real; mode::String = "total")
     dndeγ_π_eνγ_πrf(engγ) = br_π_eν * dndeγ_π_lνγ_πrf(engγ, me)
     dndeγ_π_μνγ_πrf(engγ) = br_π_μν * dndeγ_π_lνγ_πrf(engγ, mμ)
     dndeγ_π_μν_πrf(engγ) =
-        br_π_μν * decay_spectrum_muon(engγ, (mπ^2 + mμ^2) / (2 * mπ))
+        br_π_μν * dndeγ_μ_decay(engγ, (mπ^2 + mμ^2) / (2 * mπ))
     spectrum_rf(engγ) =
         (dndeγ_π_eνγ_πrf(engγ) + dndeγ_π_μνγ_πrf(engγ) + dndeγ_π_μν_πrf(engγ))
 

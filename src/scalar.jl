@@ -384,7 +384,7 @@ end
 # ------------- #
 
 function dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::AbstractScalarMediator)
-    return 2.0 * decay_spectrum_muon(eᵧ, e_cm / 2.0)
+    return 2.0 * dndeγ_μ_decay(eᵧ, e_cm / 2.0)
 end
 
 dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::HeavyQuark) = zero(eᵧ)

@@ -53,7 +53,7 @@ include("utils.jl")
 include("boost.jl")
 
 include("decay/muon.jl")
-export decay_spectrum_muon
+export dndeγ_μ_decay
 include("decay/neutral_pion.jl")
 export decay_spectrum_neutral_pion
 include("decay/charged_pion.jl")

@@ -35,22 +35,22 @@ function j_minus(y::Real)
 end
 
 """
-    decay_spectrum_muon_rf(eγ)
+    dndeγ_μ_decay_μrf(eγ)
 
 Returns the radiative decay spectrum from muon given a γ-ray energy
 `eγ` in the muon rest-frame.
 """
-function decay_spectrum_muon_rf(eγ::Real)
+function dndeγ_μ_decay_μrf(eγ::Real)
     y = 2 * eγ / mμ
     (y < 0 || y > 1 - (me / mμ)^2) && return zero(typeof(y))
     2 / mμ * (2 / y) * (j_plus(y) + j_minus(y))
 end
 
 """
-    decay_spectrum_muon(eγ, eμ)
+    dndeγ_μ_decay(eγ, eμ)
 
 Returns the radiative decay spectrum from muon given a γ-ray energy
 `eγ` and muon energy `eμ`.
 """
-decay_spectrum_muon(eγ::Real, eμ::Real) =
-    boost_spectrum(decay_spectrum_muon_rf, eμ, mμ, eγ, zero(typeof(eγ)))
+dndeγ_μ_decay(eγ::Real, eμ::Real) =
+    boost_spectrum(dndeγ_μ_decay_μrf, eμ, mμ, eγ, zero(typeof(eγ)))
