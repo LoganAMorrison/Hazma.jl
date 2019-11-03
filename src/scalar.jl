@@ -66,9 +66,29 @@ abstract type AbstractScalarMediator <: AbstractTheoryMediator end
 #     end
 # end
 
-@make_mediator_theory ScalarMediator [:mχ, :ms, :gsχχ, :gsff, :gsGG, :gsFF, :Λ] AbstractTheoryMediator
-@make_mediator_theory HiggsPortal [:mχ, :ms, :gsχχ, :sinθ] AbstractScalarMediator
-@make_mediator_theory HeavyQuark [:mχ, :ms, :gsχχ, :gsQQ, :mQ, :QQ] AbstractScalarMediator
+@make_mediator_theory ScalarMediator [
+    (:mχ, nonnegative),
+    (:ms, nonnegative),
+    :gsχχ,
+    :gsff,
+    :gsGG,
+    :gsFF,
+    (:Λ, nonnegative),
+] AbstractTheoryMediator
+@make_mediator_theory HiggsPortal [
+    (:mχ, nonnegative),
+    (:ms, nonnegative),
+    :gsχχ,
+    (:sinθ, (sinθ) -> sinθ ≥ -1 && sinθ ≤ 1),
+] AbstractScalarMediator
+@make_mediator_theory HeavyQuark [
+    (:mχ, nonnegative),
+    (:ms, nonnegative),
+    :gsχχ,
+    :gsQQ,
+    (:mQ, nonnegative),
+    :QQ,
+] AbstractScalarMediator
 
 function Base.getproperty(mod::HiggsPortal, param::Symbol)
     if param == :gsff
