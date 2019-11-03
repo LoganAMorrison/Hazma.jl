@@ -20,26 +20,10 @@ end
 
 function dBdy(y::Real)
     (y < 0 || y > 1 - (me / mμ)^2) && return zero(typeof(y))
-    (2.0 / y) * (j_plus(y) + j_minus(y))
-end
-
-function dnde_muon_integrand(cl::Real, eγ::Real, eμ::Real)
-    β = sqrt(1 - (mμ / eμ)^2)
-    γ = mμ / eμ
-    eγ_μrf = γ * eγ * (1 - β * cl)
-    dBdy((2 / mμ) * eγ_μrf) / (eμ * (1 - cl * β))
+    (2 / y) * (j_plus(y) + j_minus(y))
 end
 
 function decay_spectrum_muon(eγ::Real, eμ::Real)
-    eμ < mμ && return zero(typeof(eγ))
-
-    β = sqrt(1 - (mμ / eμ)^2)
-    γ = mμ / eμ
-
-    eγ_max = (mμ - me^2 / mμ) * γ * (1 + β) / 2
-
-    (eγ < 0 || eγ > eγ_max) && return zero(typeof(eγ))
-
-    nodes, weights = gausslegendre(15)
-    sum(weights .* dnde_muon_integrand.(nodes, eγ, eμ))
+    spectrum_rf(e) = 2 / mμ * dBdy(2 * e / mμ)
+    boost_spectrum(spectrum_rf, eμ, mμ, eγ, zero(typeof(eγ)))
 end

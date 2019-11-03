@@ -179,7 +179,7 @@ const br_π⁰_γγ = BR_PI0_TO_GG
 
 "branching-ratio π⁻ → μ⁻ν"
 const BR_PI_TO_MUNU = 0.9998
-const br_π_μμ = BR_PI_TO_MUNU
+const br_π_μν = BR_PI_TO_MUNU
 "branching-ratio π⁻ → e⁻ν"
 const BR_PI_TO_ENU = 0.000123
 const br_π_eν = BR_PI_TO_ENU

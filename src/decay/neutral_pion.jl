@@ -6,11 +6,5 @@ energy `eγ` and neutral pion energy `eπ`.
 """
 function decay_spectrum_neutral_pion(eγ::Real, eπ::Real)
     eπ < NEUTRAL_PION_MASS && return zero(typeof(eγ))
-
-    β = sqrt(1 - (NEUTRAL_PION_MASS / eπ)^2)
-    if eπ * (1 - β) / 2 <= eγ <= eπ * (1 + β) / 2
-        return BR_PI0_TO_GG * 2 / (eπ * β)
-    else
-        return zero(typeof(eγ))
-    end
+    br_π⁰_γγ * boosted_delta_function(eπ, mπ, eγ, zero(typeof(eγ)), mπ / 2)
 end
