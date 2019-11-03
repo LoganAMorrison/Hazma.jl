@@ -16,37 +16,58 @@ protected from being updated by the user with `setproperty!()`.
 The supertype must be a subtype of `AbstractTheoryMediator`. Note that for some
 reason `supertype()` does not work properly when called on the type created by
 this macro...
-
-# To-do
-Not sure how to generate code to validate the fields... Could require the user
-to call the DM and mediator masses `mχ` and `m_med`, but what if other fields
-need to be validated?
--> Could add new type Mass <: Real that checks for positivity in its inner
-constructor, but this is tricky...
 """
 macro make_mediator_theory(name, field_names, supertype=AbstractTheoryMediator)
-    fields = [:($(field)::Real) for field in eval(field_names)]
-
-    :(begin
-    mutable struct $(esc(name)) <: $(esc(supertype))
-        $(map(esc, fields)...)
-        Γ_med::Real  # add Γ_med field
-
-        function $(esc(name))($(map(esc, fields)...))
-            instance = new($(map(esc, fields)...), 0.0)  # set Γ_med to 0.0
-            setfield!(instance, :Γ_med, Γ_med(instance))  # update Γ_med
-            return instance
+    # Get fields and constraint functions
+    fields = []
+    constraints = []
+    for el in eval(field_names)
+        if el isa Symbol
+            push!(fields, :($(el)::Real))
+            push!(constraints, nothing)
+        elseif length(el) == 2 && el[1] isa Symbol && eval(el[2]) isa Function
+            push!(fields, :($(el[1])::Real))
+            push!(constraints, el[2])
+        else
+            error("'fields' entries must be :name or (:name, constraint_fn)")
         end
     end
 
-    # Prevent Γ_med from being set, and update it when fields are changed
-    function Base.setproperty!(model::$(esc(name)), sym::Symbol, v)
-        sym == :Γ_med && throw(error("cannot set Γ_med"))
+    quote
+        mutable struct $(esc(name)) <: $(esc(supertype))
+            $(map(esc, fields)...)
+            Γ_med::Real  # add Γ_med field
 
-        setfield!(model, sym, v)  # set the field if it's not width
-        setfield!(model, :Γ_med, Γ_med(model))  # update width
+            function $(esc(name))($(map(esc, fields)...))
+                # TODO: I don't get why `[$(map(esc, fields)...)]` works, but
+                # `$(map(esc, fields))` doesn't. For some reason the latter
+                # gives an `Expr[]` while the former gives a `Real[]`...
+                for (name, val, constr) in zip(
+                    $(esc(fields)),  # needed to get field names for error
+                    [$(map(esc, fields)...)],  # field values
+                    [$(map(esc, constraints)...)],  # constraint functions
+                )
+                    if constr == nothing
+                        continue
+                    elseif !constr(val)
+                        error("constraint '$constr' not satisfied for '$name'")
+                    end
+                end
+
+                instance = new($(map(esc, fields)...), 0.0)  # set Γ_med to 0.0
+                setfield!(instance, :Γ_med, Γ_med(instance))  # update Γ_med
+                return instance
+            end
+        end
+
+        # Prevent Γ_med from being set, and update it when fields are changed
+        function Base.setproperty!(model::$(esc(name)), sym::Symbol, v)
+            sym == :Γ_med && throw(error("cannot set Γ_med"))
+
+            setfield!(model, sym, v)  # set the field if it's not width
+            setfield!(model, :Γ_med, Γ_med(model))  # update width
+        end
     end
-    end)
 end
 
 # ------------------- #
