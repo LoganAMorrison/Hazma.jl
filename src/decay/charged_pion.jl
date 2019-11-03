@@ -48,7 +48,6 @@ function dndeγ_π_decay(eγ::Real, eπ::Real; mode::String = "total")
     spectrum_rf(engγ) =
         (dndeγ_π_eνγ_πrf(engγ) + dndeγ_π_μνγ_πrf(engγ) + dndeγ_π_μν_πrf(engγ))
 
-    spec = zero(typeof(eγ))
     if mode == "total"
         return boost_spectrum(spectrum_rf, eπ, mπ, eγ, 0.0)
     elseif mode == "μν"
