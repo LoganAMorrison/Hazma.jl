@@ -119,11 +119,6 @@ Returns the radiative spectrum value from charged pion given a γ-ray energy
 """
 function decay_spectrum_charged_pion(eγ::Real, eπ::Real; mode::String = "total")
     eπ < mπ && return zero(typeof(eγ))
-
-    nodes, weights = gausslegendre(15)
-    sum(weights .* dnde_pi_integrand.(nodes, eγ, eπ; mode = mode))
+    spectrum_rf(cosθ) = dnde_pi_integrand(cosθ, eγ, eπ; mode = mode);
+    quadgk(spectrum_rf, -1, 1)[1]
 end
-
-
-decay_spectrum_charged_pion(0.1, 2 * mπ)
-decay_spectrum_muon(0.1, 2 * mμ)

@@ -1,45 +1,56 @@
+# functions for computing the γ-ray spectrum from  muon decays: μ → e ν ν γ
+
+"""
+    j_plus(y::Real)
+
+Form factor in differential branching fraction of radiative muon decay given
+a scaled photon energy `y` = 2Eᵧ / mμ. See p.18, eqn (54) of
+arXiv:hep-ph/9909265.
+"""
 function j_plus(y::Real)
     yconj = 1 - y
     r = (me / mμ)^2
     preFactor = αem * yconj / 6π
-    term1 = 3log(yconj / r) - 17 / 2
-    term2 = -3log(yconj / r) + 7
-    term3 = 2log(yconj / r) - 13 / 3
+    term1 = 3 * log(yconj / r) - 17 / 2
+    term2 = -3 * log(yconj / r) + 7
+    term3 = 2 * log(yconj / r) - 13 / 3
     preFactor * (term1 + term2 * yconj + term3 * yconj^2)
 end
 
+"""
+    j_minus(y::Real)
+
+Form factor in differential branching fraction of radiative muon decay given
+a scaled photon energy `y` = 2Eᵧ / mμ. See p.18, eqn (55) of
+arXiv:hep-ph/9909265.
+"""
 function j_minus(y::Real)
     yconj = 1 - y
     r = (me / mμ)^2
     preFactor = αem * yconj^2 / 6π
-    term1 = 3log(yconj / r) - 93 / 12
-    term2 = -4log(yconj / r) + 29 / 3
-    term3 = 2log(yconj / r) - 55 / 12
+    term1 = 3 * log(yconj / r) - 93 / 12
+    term2 = -4 * log(yconj / r) + 29 / 3
+    term3 = 2 * log(yconj / r) - 55 / 12
     preFactor * (term1 + term2 * yconj + term3 * yconj^2)
 end
 
-function dBdy(y::Real)
+"""
+    decay_spectrum_muon_rf(eγ)
+
+Returns the radiative decay spectrum from muon given a γ-ray energy
+`eγ` in the muon rest-frame.
+"""
+function decay_spectrum_muon_rf(eγ::Real)
+    y = 2 * eγ / mμ
     (y < 0 || y > 1 - (me / mμ)^2) && return zero(typeof(y))
-    (2.0 / y) * (j_plus(y) + j_minus(y))
+    2 / mμ * (2 / y) * (j_plus(y) + j_minus(y))
 end
 
-function dnde_muon_integrand(cl::Real, eγ::Real, eμ::Real)
-    β = sqrt(1 - (mμ / eμ)^2)
-    γ = mμ / eμ
-    eγ_μrf = γ * eγ * (1 - β * cl)
-    dBdy((2 / mμ) * eγ_μrf) / (eμ * (1 - cl * β))
-end
+"""
+    decay_spectrum_muon(eγ, eμ)
 
-function decay_spectrum_muon(eγ::Real, eμ::Real)
-    eμ < mμ && return zero(typeof(eγ))
-
-    β = sqrt(1 - (mμ / eμ)^2)
-    γ = mμ / eμ
-
-    eγ_max = (mμ - me^2 / mμ) * γ * (1 + β) / 2
-
-    (eγ < 0 || eγ > eγ_max) && return zero(typeof(eγ))
-
-    nodes, weights = gausslegendre(15)
-    sum(weights .* dnde_muon_integrand.(nodes, eγ, eμ))
-end
+Returns the radiative decay spectrum from muon given a γ-ray energy
+`eγ` and muon energy `eμ`.
+"""
+decay_spectrum_muon(eγ::Real, eμ::Real) =
+    boost_spectrum(decay_spectrum_muon_rf, eμ, mμ, eγ, zero(typeof(eγ)))
