@@ -94,19 +94,33 @@ Boost the spectrum of a daughter particle in particle particles rest-frame into 
 -`ep::Real`: Energy of parent particle in lab-frame.
 -`mp::Real`: Mass of parent particle.
 -`ed::Real`: Energy of daughter particle in lab-frame.
--`md::Real`: Mass of daughter particle.
+-`ed_ub::Real`: Upper bound on daughter energy in rest-frame.
+-`ed_lw::Real`: Lower bound on daughter energy in rest-frame.
 """
 function boost_spectrum(
     spectrum_rf::Function,
     ep::Real,
     mp::Real,
     ed::Real,
-    md::Real,
+    md::Real;
+    ed_ub::Real = Inf,
+    ed_lb::Real = -Inf,
 )
     ep < mp && return zero(typeof(ed))
     ep == mp && return spectrum_rf(ed)
-    f(cosθ) =
-        boost_jacobian(ep, mp, ed, md, cosθ) *
-        spectrum_rf(boost_energy(ep, mp, ed, md, cosθ)) / 2
-    quadgk(f, -1, 1)[1]
+    function integrand(cosθ)
+        boostedeng = boost_energy(ep, mp, ed, md, cosθ)
+        boostedeng < ed_lb || ed_ub < boostedeng && return zero(typeof(cosθ))
+        boost_jacobian(ep, mp, ed, md, cosθ) * spectrum_rf(boostedeng) / 2
+    end
+
+    momentum = sqrt(ep^2 - mp^2)
+    γ = ep / mp
+    β = momentum / ep
+    # integration bounds on cosθ
+    lb = max((ed - ed_ub / γ) / (β * sqrt(ed^2 - md^2)), -1)
+    ub = min((ed - ed_lb / γ) / (β * sqrt(ed^2 - md^2)), 1)
+    (lb > 1 || ub < -1) && return zero(typeof(ed))
+
+    quadgk(integrand, lb, ub)[1]
 end

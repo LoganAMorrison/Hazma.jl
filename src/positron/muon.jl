@@ -20,5 +20,8 @@ end
 Returns the electron/positron spectrum at an electron/positron energy `ep` from
 the muon given an arbitrary muon energy `eμ`.
 """
-dndeₑ_μ_decay(ep::Real, eμ::Real) =
-    boost_spectrum(dndeₑ_μ_decay_μrf, eμ, mμ, ep, me)
+function dndeₑ_μ_decay(ep::Real, eμ::Real)
+    ed_lb = me
+    ed_ub = (mμ^2 + me^2) / (2mμ)
+    boost_spectrum(dndeₑ_μ_decay_μrf, eμ, mμ, ep, me; ed_ub=ed_ub, ed_lb=ed_lb)
+end

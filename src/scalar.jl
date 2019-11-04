@@ -213,7 +213,8 @@ end
 
 Γ_s_to_ee(mod::AbstractScalarMediator) = Γ_s_to_ff(mod, me)
 Γ_s_to_μμ(mod::AbstractScalarMediator) = Γ_s_to_ff(mod, mμ)
-Γ_s_to_ee(mod::HeavyQuark) = 0.0 * Γ_s_to_μμ(mod::HeavyQuark) = 0.0
+Γ_s_to_ee(mod::HeavyQuark) = 0.0;
+Γ_s_to_μμ(mod::HeavyQuark) = 0.0;
 # ----------------------------------- #
 # DM self-annihilation cross sections #
 # ----------------------------------- #
@@ -373,7 +374,7 @@ end
 # ------------- #
 
 dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::AbstractScalarMediator) =
-    2 * dndeγ_μ_decay(eᵧ, e_cm / 2)
+    2 * dndeᵧ_μ_decay(eᵧ, e_cm / 2)
 
 dndeᵧ_χχ_to_μμ(eᵧ::Real, e_cm::Real, mod::HeavyQuark) = zero(eᵧ)
 
@@ -405,7 +406,7 @@ end
 Positron/electron spectrum from dark matter annihilating into charged pions.
 """
 dndeₑ_χχ_to_ππ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
-    positron_spectrum_charged_pion(eₑ, e_cm / 2)
+    dndeₑ_π_decay(eₑ, e_cm / 2)
 
 """
     dndeₑ_μμ(eₑ::Real, e_cm::Real)
@@ -413,36 +414,8 @@ dndeₑ_χχ_to_ππ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
 Positron/electron spectrum from dark matter annihilating into muons.
 """
 dndeₑ_χχ_to_μμ(eₑ::Real, e_cm::Real, ::AbstractScalarMediator) =
-    positron_spectrum_muon(eₑ, e_cm / 2)
+    dndeₑ_μ_decay(eₑ, e_cm / 2)
 
-function dndeₑ_χχ_to_ss_integrand(
-    cosθ::Real,
-    eₑ::Real,
-    es::Real,
-    mod::AbstractScalarMediator,
-    fs::String,
-)
-    eₑ < me && return zero(typeof(eₑ))
-    pwμμ = Γ_s_to_ff(mod, mμ)
-    pwππ = Γ_s_to_ππ(mod)
-
-    p = sqrt(eₑ^2 - me^2)
-    γ = es / ms
-    β = sqrt(1 - (ms / es)^2)
-    eₑ_srf = γ * (eₑ - p * β * cosθ)
-    jac = (p / (2 *
-            sqrt((1 + (β * cosθ)^2) * eₑ^2 - (1 + β^2 * (-1 + cosθ^2)) * me^2 -
-                 2 * β * cosθ * eₑ * p) *
-            γ))
-
-    dnde = 0
-    if (fs == "total" || fs == "π⁺ π⁻")
-        dnde += 2 * pwππ * positron_spectrum_charged_pion(eₑ_srf, mod.ms / 2)
-    elseif (fs == "total" || fs == "μ⁺ μ⁻")
-        dnde += 2 * pwμμ * positron_spectrum_muon(eₑ_srf, mod.ms / 2)
-    end
-    jac * dnde
-end
 
 """
     dndeₑ_ss(eₑ::Real, e_cm::Real)
@@ -451,29 +424,53 @@ Positron/electron spectrum from dark matter annihilating into scalar mediators.
 """
 function dndeₑ_χχ_to_ss(
     eₑ::Real,
-    es::Real,
+    e_cm::Real,
     mod::AbstractScalarMediator;
     fs::String = "total",
 )
-    es < ms && return zero(typeof(eₑ))
-    lines_contrib = 0
-    β = sqrt(1 - (ms / es)^2)
+    (e_cm < 2 * mod.mχ || e_cm < 2 * mod.ms) && return zero(typeof(eₑ))
+    
+    es = e_cm / 2
 
-    r = sqrt(1 - 4 * me^2 / ms^2)
-    e₊ = es * (1 + r * β) / 2e₋ = es * (1 - r * β) / 2
-    result = 0
-    if e₋ <= eₑ <= e₊
-        lines_contrib = Γ_s_to_ff(mod, me) / (es * β)
-    end
+    # line contribution from s → e⁺ e⁻: factor of 2 for 2 electrons per S
+    Γee = Γ_s_to_ee(mod)
+    lines_contrib = 2 * Γee *
+                    boosted_delta_function(es, mod.ms, eₑ, me, mod.ms / 2)
 
     fs == "e⁺ e⁻" && return lines_contrib
+    Γππ = Γ_s_to_ππ(mod)
+    Γμμ = Γ_s_to_μμ(mod)
+    # factors of 2 for two π (μ) per S
+    dndeₑ_π_decay_srf(eₑ_srf) = 2 * Γππ * dndeₑ_π_decay(eₑ_srf, mod.ms / 2)
+    dndeₑ_μ_decay_srf(eₑ_srf) = 2 * Γμμ * dndeₑ_μ_decay(eₑ_srf, mod.ms / 2)
+    spectrum_rf(eₑ_srf) = dndeₑ_π_decay_srf(eₑ_srf) + dndeₑ_μ_decay_srf(eₑ_srf)
 
-    if fs == "total" || fs == "π⁺ π⁻" || fs == "μ⁺ μ⁻"
-        nodes, weights = gausslegendre(50)
-        f(cosθ) = dndeₑ_χχ_to_ss_integrand(cosθ, eₑ, es, mod, fs)
-        result = sum(weights .* f.(nodes))
-        return result + lines_contrib
+    if fs == "total"
+        result = boost_spectrum(spectrum_rf, es, mod.ms, eₑ, me)
+    elseif fs == "π⁺ π⁻"
+        result = boost_spectrum(dndeₑ_π_decay_srf, es, mod.ms, eₑ, me)
+    elseif fs == "μ⁺ μ⁻"
+        result = boost_spectrum(dndeₑ_π_decay_srf, es, mod.ms, eₑ, me)
+    else
+        result = zero(typeof(eₑ))
     end
 
-    return result
+    # factor of 2 for 2 final state S's
+    2 * (result + lines_contrib)
 end
+
+include("constants.jl");
+include("utils.jl");
+include("theory.jl");
+include("boost.jl");
+include("decay/muon.jl");
+include("decay/charged_pion.jl");
+include("decay/neutral_pion.jl");
+include("positron/muon.jl");
+include("positron/charged_pion.jl");
+using QuadGK
+
+model = HiggsPortal(100.0, 1000.0, 1.0, 1e-3)
+
+
+dndeₑ_χχ_to_ss(100.0, 3 * model.ms, model; fs = "μ⁺ μ⁻")
