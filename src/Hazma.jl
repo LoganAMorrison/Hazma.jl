@@ -53,16 +53,16 @@ include("utils.jl")
 include("boost.jl")
 
 include("decay/muon.jl")
-export dndeγ_μ_decay
+export dndeᵧ_μ_decay
 include("decay/neutral_pion.jl")
-export decay_spectrum_neutral_pion
+export dndeᵧ_π⁰_decay
 include("decay/charged_pion.jl")
 export decay_spectrum_charged_pion
 
 include("positron/muon.jl")
-export positron_spectrum_muon
+export dndeₑ_μ_decay
 include("positron/charged_pion.jl")
-export positron_spectrum_charged_pion
+export dndeₑ_π_decay
 
 include("theory.jl")
 export list_annihilation_final_states, σ_χχ, br_χχ

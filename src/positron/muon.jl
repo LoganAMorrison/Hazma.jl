@@ -1,10 +1,10 @@
 """
-    positron_spectrum_muon_rf(eng_p::Real)
+    dndeₑ_μ_decay_rf(eng_p::Real)
 
 Returns the electron/positron spectrum from a muon in the muon rest frame given
 a electron/positron energy `ep`. Note this spectrum is from μ→eνν.
 """
-function positron_spectrum_muon_rf(ep::Real)
+function dndeₑ_μ_decay_μrf(ep::Real)
     r = me / mμ
     ϵ = ep / mμ
 
@@ -15,10 +15,10 @@ function positron_spectrum_muon_rf(ep::Real)
 end
 
 """
-    positron_spectrum_muon(ep::Real, eμ::Real)
+    dndeₑ_μ_decay(ep::Real, eμ::Real)
 
 Returns the electron/positron spectrum at an electron/positron energy `ep` from
 the muon given an arbitrary muon energy `eμ`.
 """
-positron_spectrum_muon(ep::Real, eμ::Real) =
-    boost_spectrum(positron_spectrum_muon_rf, eμ, mμ, ep, me)
+dndeₑ_μ_decay(ep::Real, eμ::Real) =
+    boost_spectrum(dndeₑ_μ_decay_μrf, eμ, mμ, ep, me)
