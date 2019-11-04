@@ -429,17 +429,18 @@ function dndeₑ_χχ_to_ss(
     fs::String = "total",
 )
     (e_cm < 2 * mod.mχ || e_cm < 2 * mod.ms) && return zero(typeof(eₑ))
-    
+    mod.Γ_med == 0 && return zero(typeof(eₑ))
+
     es = e_cm / 2
 
     # line contribution from s → e⁺ e⁻: factor of 2 for 2 electrons per S
-    Γee = Γ_s_to_ee(mod)
+    Γee = Γ_s_to_ee(mod) / mod.Γ_med
     lines_contrib = 2 * Γee *
                     boosted_delta_function(es, mod.ms, eₑ, me, mod.ms / 2)
 
     fs == "e⁺ e⁻" && return lines_contrib
-    Γππ = Γ_s_to_ππ(mod)
-    Γμμ = Γ_s_to_μμ(mod)
+    Γππ = Γ_s_to_ππ(mod) / mod.Γ_med
+    Γμμ = Γ_s_to_μμ(mod) / mod.Γ_med
     # factors of 2 for two π (μ) per S
     dndeₑ_π_decay_srf(eₑ_srf) = 2 * Γππ * dndeₑ_π_decay(eₑ_srf, mod.ms / 2)
     dndeₑ_μ_decay_srf(eₑ_srf) = 2 * Γμμ * dndeₑ_μ_decay(eₑ_srf, mod.ms / 2)
@@ -458,19 +459,3 @@ function dndeₑ_χχ_to_ss(
     # factor of 2 for 2 final state S's
     2 * (result + lines_contrib)
 end
-
-include("constants.jl");
-include("utils.jl");
-include("theory.jl");
-include("boost.jl");
-include("decay/muon.jl");
-include("decay/charged_pion.jl");
-include("decay/neutral_pion.jl");
-include("positron/muon.jl");
-include("positron/charged_pion.jl");
-using QuadGK
-
-model = HiggsPortal(100.0, 1000.0, 1.0, 1e-3)
-
-
-dndeₑ_χχ_to_ss(100.0, 3 * model.ms, model; fs = "μ⁺ μ⁻")
