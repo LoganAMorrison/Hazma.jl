@@ -242,14 +242,13 @@ function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
     end
 end
 
-# TODO: WRONG!
 function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
-    (e_cm < 2.0mf || e_cm < 2.0 * mod.mχ) && return 0.0
+    (e_cm < 2 * mf || e_cm < 2 * mod.mχ) && return zero(typeof(e_cm))
     Γs = Γ_med(mod)
-    return ((mod.gsFF^2 * mod.gsχχ^2 * mf^2 * (-2.0 * mod.mχ + e_cm) *
-             (2.0 * mod.mχ + e_cm) * (-4.0 * mf^2 + e_cm^2)^1.5) /
-            (16.0π * e_cm^2 * sqrt(e_cm^2 - 4.0 * mod.mχ^2) * VH^2 *
-             (mod.ms^4 - 2.0 * mod.ms^2 * e_cm^2 + e_cm^4 + mod.ms^2 * Γs^2)))
+    return ((mod.gsff^2 * mod.gsχχ^2 * mf^2 * (-2 * mod.mχ + e_cm) *
+             (2 * mod.mχ + e_cm) * (-4 * mf^2 + e_cm^2)^1.5) /
+            (16 * π * e_cm^2 * sqrt(e_cm^2 - 4 * mod.mχ^2) * VH^2 *
+             (mod.ms^4 - 2 * mod.ms^2 * e_cm^2 + e_cm^4 + mod.ms^2 * Γs^2)))
 end
 
 σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) =
