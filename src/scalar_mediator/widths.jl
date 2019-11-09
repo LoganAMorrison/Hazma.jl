@@ -1,4 +1,4 @@
-# Scalar mediator widths in the scalar mediator model.
+# Scalar mediator widths in the scalar mediator mod.
 
 """
     Γ_med(mod::AbstractScalarMediator, fs::String)
@@ -35,7 +35,7 @@ Compute the partial decay width of a scalar mediator into photons from model
 `mod`.
 """
 function Γ_s_to_γγ(mod::AbstractScalarMediator)
-    (αem^2 * mod.gsFF^2 * model.ms^3) / (64 * mod.Λ^2 * π^3)
+    (αem^2 * mod.gsFF^2 * mod.ms^3) / (64 * mod.Λ^2 * π^3)
 end
 
 """
@@ -123,15 +123,15 @@ Compute the partial decay width of a scalar mediator into muons from model
 """
     Γ_s_to_ee(mod::HeavyQuark)
 
-Compute the partial decay width of a scalar mediator into electrons from HeavyQuark model. Note this is zero since there are no coupling between the
-scalar mediator and leptons in this model.
+Compute the partial decay width of a scalar mediator into electrons from HeavyQuark mod. Note this is zero since there are no coupling between the
+scalar mediator and leptons in this mod.
 """
 Γ_s_to_ee(mod::HeavyQuark) = 0.0;
 
 """
     Γ_s_to_μμ(mod::HeavyQuark)
 
-Compute the partial decay width of a scalar mediator into muons from HeavyQuark model. Note this is zero since there are no coupling between the scalar
-mediator and leptons in this model.
+Compute the partial decay width of a scalar mediator into muons from HeavyQuark mod. Note this is zero since there are no coupling between the scalar
+mediator and leptons in this mod.
 """
 Γ_s_to_μμ(mod::HeavyQuark) = 0.0;

@@ -1,4 +1,4 @@
-# Model definitions for various scalar mediator models.
+# Model definitions for various vector mediator models.
 
 import Base.getproperty
 

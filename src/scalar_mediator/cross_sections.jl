@@ -4,7 +4,7 @@
     σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
 
 Compute the cross section of χχ̄ → `fs` in the scalar mediator model `mod`. Use
-`fs = "all"` to sum over all final states.
+`fs = "total"` to sum over all final states.
 """
 function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
     if fs == "e⁺ e⁻"
@@ -23,6 +23,8 @@ function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
         σs = Dict(fs => σ_χχ(e_cm, mod, fs) for fs in list_annihilation_final_states(mod))
         σs["total"] = sum(values(σs))
         return σs
+    elseif fs == "total"
+        return sum(σ_χχ(e_cm, mod, fs) for fs in list_annihilation_final_states(mod))
     else
         return zero(typeof(e_cm))
     end

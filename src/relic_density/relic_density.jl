@@ -95,24 +95,27 @@ end
 
 
 """
-    thermal_cross_section_integrand(z::Real, x::Real, model)
+    thermal_cross_section_integrand(z::Real, x::Real, model::AbstractTheory)
 
 Compute the integrand of the thermally average cross section for the dark
 matter particle of the given model.
 """
-function thermal_cross_section_integrand(z::Real, x::Real, model)
-    (z^2 * (z^2 - 4.0) * k1(x * z) *
-     annihilation_cross_section(model.mx * z, model))
+function thermal_cross_section_integrand(
+    z::Real,
+    x::Real,
+    model::AbstractTheory,
+)
+    (z^2 * (z^2 - 4.0) * k1(x * z) * σ_χχ(model.mχ * z, model, "total"))
 end
 
 
 """
-    thermal_cross_section(x::Real, model)
+    thermal_cross_section(x::Real, model::AbstractTheory)
 
 Compute the thermally average cross section for the dark
 matter particle of the given model.
 """
-function thermal_cross_section(x::Real, model)
+function thermal_cross_section(x::Real, model::AbstractTheory)
     x > 300 && return 0.0
 
     pf = x / (2.0 * besselk(2, x))^2
@@ -125,14 +128,14 @@ end
 # ------------------------------- --------------- #
 
 """
-    boltzmann_eqn!(dw, w, logx, model)
+    boltzmann_eqn!(dw, w, logx, model::AbstractTheory)
 
 Compute the RHS of the Boltzmann equation. Here the RHS is given by dW/dlogx,
 with W = log(neq / sm_entropy_density). Note that this function is intended to
 be used with `DifferentialEquations.jl`.
 """
-function boltzmann_eqn!(dw, w, model, logx)
-    mx = model.mx
+function boltzmann_eqn!(dw, w, model::AbstractTheory, logx)
+    mx = model.mχ
     x = exp(logx)
     T = mx / x
     pf = -sqrt(π / 45) * PLANK_MASS * mx * sm_sqrt_gstar(T) / x
@@ -143,13 +146,13 @@ function boltzmann_eqn!(dw, w, model, logx)
 end
 
 """
-    jacobian_boltzmann_eqn!(logx, w, model)
+    jacobian_boltzmann_eqn!(logx, w, model::AbstractTheory)
 
 Compute the Jacobian of the RHS of the Boltzmann equation with
 respect to the log of the comoving equilibrium number density.
 """
-function jacobian_boltzmann_eqn!(J, w, model, logx)
-    mx = model.mx
+function jacobian_boltzmann_eqn!(J, w, model::AbstractTheory, logx)
+    mx = model.mχ
     x = exp(logx)
     T = mx / x
     pf = -sqrt(π / 45) * PLANK_MASS * mx * sm_sqrt_gstar(T) / x
@@ -160,21 +163,21 @@ function jacobian_boltzmann_eqn!(J, w, model, logx)
 end
 
 """
-    solve_boltzmann(model)
+    solve_boltzmann(model::AbstractTheory)
 
 Solve the Boltzmann equation for the log of the dark matter comoving number
 density as a function of `logx` - which is the log of the dark matter mass over
 its temperature.
 """
 function solve_boltzmann(
-    model;
+    model::AbstractTheory;
     x0 = 1.0,
     xf = nothing,
     alg = radau(),
     reltol = 1e-5,
     abstol = 1e-3,
 )
-    mx = model.mx
+    mx = model.mχ
     T0 = mx / x0
     w0 = [weq(T0, mx; g = 2.0)]
     logx0 = log(x0)
@@ -192,7 +195,7 @@ end
 # ----------------------------------------------------------- #
 
 """
-    xstar_root_eqn(xstar, model; δ)
+    xstar_root_eqn(xstar, model::AbstractTheory; δ)
 
 Returns residual of root equation used to solve for x_star given the current
 value `xstar` and the DM model `model` assuming that the DM freezes out when
@@ -202,23 +205,27 @@ See Eqn.(14) of arXiv:1204.3622v3 for similar expressions. Note that our
 result is more exact since we do not assume `xstar` is large enough that
 Yeq ~ x^{3/2} e^{-x} / h_sm. This may cause a bit of a slow down.
 """
-function xstar_root_eqn(xstar::Real, model; δ::Float64 = 0.5 * (sqrt(5) - 1))
+function xstar_root_eqn(
+    xstar::Real,
+    model::AbstractTheory;
+    δ::Float64 = 0.5 * (sqrt(5) - 1),
+)
     Δ = δ * (2 + δ) / (1 + δ)
-    T = model.mx / xstar
-    λ = sqrt(π / 45) * model.mx * PLANK_MASS * sm_sqrt_gstar(T)
+    T = model.mχ / xstar
+    λ = sqrt(π / 45) * model.mχ * PLANK_MASS * sm_sqrt_gstar(T)
     tcs = thermal_cross_section(xstar, model)
-    _yeq = yeq(T, model.mx)
-    dyeq = ForwardDiff.derivative(x -> yeq(model.mx / x, model.mx), xstar)
+    _yeq = yeq(T, model.mχ)
+    dyeq = ForwardDiff.derivative(x -> yeq(model.mχ / x, model.mχ), xstar)
     return xstar^2 * dyeq + λ * Δ * tcs * _yeq^2
 end
 
 """
-    compute_xstar(model; δ::Float64=0.5 * (sqrt(5) - 1))
+    compute_xstar(model::AbstractTheory; δ::Float64=0.5 * (sqrt(5) - 1))
 
 Computes to value of `xstar`: the value of dm_mass / temperature such that
 the DM begins to freeze out.
 """
-function compute_xstar(model; δ::Float64 = 0.5 * (sqrt(5) - 1))
+function compute_xstar(model::AbstractTheory; δ::Float64 = 0.5 * (sqrt(5) - 1))
     f(x) = xstar_root_eqn(x, model; δ = δ)
     find_zero(f, (0.01, 100.0))
 end
@@ -229,22 +236,22 @@ end
 Computes the value of the integral of RHS of the Boltzmann equation with
 Yeq set to zero from x_{\\star} to x_{\\mathrm{f.o.}}.
 """
-function compute_alpha(model, xstar)
-    pf = sqrt(π / 45) * model.mx * PLANK_MASS
+function compute_alpha(model::AbstractTheory, xstar)
+    pf = sqrt(π / 45) * model.mχ * PLANK_MASS
 
     integrand(x) =
-        (sm_sqrt_gstar(model.mx / x) * thermal_cross_section(x, model) / x^2)
+        (sm_sqrt_gstar(model.mχ / x) * thermal_cross_section(x, model) / x^2)
     pf * quadgk(integrand, xstar, 100 * xstar)[1]
 end
 
 """
-    relic_density(model; semi_analytic=true, kwargs...)
+    relic_density(model::AbstractTheory; semi_analytic=true, kwargs...)
 
 Solves the Boltzmann equation and returns the relic density
 computed from the final dark matter comoving number density.
 
 # Arguments
-- `model`: Dark matter model.
+- `model::AbstractTheory`: Dark matter model.
 - `semi_analytic::Bool` : If `True`, the relic density is computed using semi-analytical methods, otherwise the Boltzmann equation is numerically solved.
 
 # kwargs
@@ -273,12 +280,12 @@ If `semi_analytical` is `False`, accepted kwargs are:
         Absolute tolerance used to solve the Boltzmann equation.
         Default is `1e-6`.
 """
-function relic_density(model; semi_analytic = true, kwargs...)
+function relic_density(model::AbstractTheory; semi_analytic = true, kwargs...)
     if semi_analytic
         δ = (:δ in keys(kwargs)) ? kwargs[:δ] : 0.5 * (sqrt(5) - 1)
         xstar = compute_xstar(model; δ = δ)
         alpha = compute_alpha(model, xstar)
-        ystar = yeq(model.mx / xstar, model.mx)
+        ystar = yeq(model.mχ / xstar, model.mχ)
         Y0 = ystar / (1 + ystar * alpha)
     else
         x0 = (:x0 in keys(kwargs)) ? kwargs[:x0] : 1.0
@@ -296,5 +303,5 @@ function relic_density(model; semi_analytic = true, kwargs...)
         )
         Y0 = exp(sol[end][1])
     end
-    Y0 * model.mx * SM_ENTROPY_DENSITY_TODAY / CRITICAL_ENERGY_DENSITY
+    Y0 * model.mχ * SM_ENTROPY_DENSITY_TODAY / CRITICAL_ENERGY_DENSITY
 end
