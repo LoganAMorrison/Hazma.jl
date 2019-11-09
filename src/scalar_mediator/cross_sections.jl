@@ -31,15 +31,15 @@ function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
 end
 
 """
-    σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
+    σ_χχ_to_ll(e_cm::Real, mod::AbstractScalarMediator, ml::Real)
 
-Compute the cross section of χχ̄ → ff̄ in the scalar mediator model `mod` given
-a final state fermion mass `mf`.
+Compute the cross section of χχ̄ → ll̄ in the scalar mediator model `mod` given
+a final state lepton mass `ml`.
 """
-function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
+function σ_χχ_to_ll(e_cm::Real, mod::AbstractScalarMediator, ml::Real)
     (e_cm < 2 * mf || e_cm < 2 * mod.mχ) && return zero(typeof(e_cm))
 
-    (mod.gsff^2 * mod.gsχχ^2 * mf^2 * (-4 * ml^2 + e_cm^2)^1.5 *
+    (mod.gsff^2 * mod.gsχχ^2 * ml^2 * (-4 * ml^2 + e_cm^2)^1.5 *
      sqrt(-4 * mod.mχ^2 + e_cm^2)) /
     (16 * π * e_cm^2 * VH^2 * ((mod.ms^2 - e_cm^2)^2 + mod.ms^2 * mod.Γ_med^2))
 end
@@ -49,14 +49,14 @@ end
 
 Compute the cross section of χχ̄ → e⁺e⁻ in the scalar mediator model `mod`.
 """
-σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ff(e_cm, mod, me)
+σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ll(e_cm, mod, me)
 
 """
     σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator)
 
 Compute the cross section of χχ̄ → μ⁺μ⁻ in the scalar mediator model `mod`.
 """
-σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ff(e_cm, mod, mμ)
+σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ll(e_cm, mod, mμ)
 
 """
     σ_χχ_to_ee(e_cm::Real, mod::HeavyQuark)
@@ -176,4 +176,20 @@ function σ_χχ_to_χχ(e_cm::Real, mod::AbstractScalarMediator)
            ((mod.ms^2 - 4 * mod.mχ^2 + e_cm^2)^2 + mod.ms^2 * mod.Γ_med^2))))) /
     (32 * mod.ms * pi * e_cm^2 * (-4 * mod.mχ^2 + e_cm^2) * mod.Γ_med *
      ((mod.ms^2 - e_cm^2)^2 + mod.ms^2 * mod.Γ_med^2))
+end
+
+"""
+    thermal_cross_section(x::Real, mod::AbstractScalarMediator)
+
+Compute the thermally average cross section for the dark matter particle of the
+given model `mod`.
+"""
+function thermal_cross_section(x::Real, mod::AbstractScalarMediator)
+    x > 300 && return 0.0
+
+    integrand(z) =
+        (z^2 * (z^2 - 4) * besselk1(x * z) * σ_χχ(mod.mχ * z, mod, "total"))
+
+    #TODO: add breakpoints at: ms / mχ and 2ms / mχ
+    x / (2 * besselk2(x))^2 * quadgk(integrand, 2.0, max(50.0 / x, 150))[1]
 end

@@ -62,11 +62,11 @@ function neq(T::Real, m::Float64; g::Float64 = 2.0, stats::Symbol = :fermion)
         eta = (stats == :fermion) ? -1 : 1
         x = m / T
 
-        nbar = x^2 * (eta^(1 + 1) / 1 * besselk(2, 1 * x) +
-                eta^(2 + 1) / 2 * besselk(2, 2 * x) +
-                eta^(3 + 1) / 3 * besselk(2, 3 * x) +
-                eta^(4 + 1) / 4 * besselk(2, 4 * x) +
-                eta^(5 + 1) / 5 * besselk(2, 5 * x)) / (2 * π^2)
+        nbar = x^2 * (eta^(1 + 1) / 1 * besselk2(1 * x) +
+                eta^(2 + 1) / 2 * besselk2(2 * x) +
+                eta^(3 + 1) / 3 * besselk2(3 * x) +
+                eta^(4 + 1) / 4 * besselk2(4 * x) +
+                eta^(5 + 1) / 5 * besselk2(5 * x)) / (2 * π^2)
     end
     g * nbar * T^3
 end
@@ -105,7 +105,7 @@ function thermal_cross_section_integrand(
     x::Real,
     model::AbstractTheory,
 )
-    (z^2 * (z^2 - 4.0) * k1(x * z) * σ_χχ(model.mχ * z, model, "total"))
+    (z^2 * (z^2 - 4.0) * besselk1(x * z) * σ_χχ(model.mχ * z, model, "total"))
 end
 
 
@@ -118,8 +118,9 @@ matter particle of the given model.
 function thermal_cross_section(x::Real, model::AbstractTheory)
     x > 300 && return 0.0
 
-    pf = x / (2.0 * besselk(2, x))^2
-    pf * quadgk(thermal_cross_section_integrand, 2.0, max(50.0 / x, 150))[1]
+    pf = x / (2.0 * besselk2(x))^2;
+    integrand(z) = thermal_cross_section_integrand(z, x, model);
+    pf * quadgk(integrand, 2.0, max(50.0 / x, 150))[1]
 end
 
 # ----------------------------------------------- #

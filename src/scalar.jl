@@ -237,7 +237,7 @@ function σ_χχ(e_cm::Real, mod::AbstractScalarMediator, fs::String)
     end
 end
 
-function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
+function σ_χχ_to_ll(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
     (e_cm < 2 * mf || e_cm < 2 * mod.mχ) && return zero(typeof(e_cm))
 
     (mod.gsff^2 * mod.gsχχ^2 * mf^2 * (-4 * ml^2 + e_cm^2)^1.5 *
@@ -245,8 +245,8 @@ function σ_χχ_to_ff(e_cm::Real, mod::AbstractScalarMediator, mf::Real)
     (16 * π * e_cm^2 * VH^2 * ((mod.ms^2 - e_cm^2)^2 + mod.ms^2 * mod.Γ_med^2))
 end
 
-σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ff(e_cm, mod, me)
-σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ff(e_cm, mod, mμ)
+σ_χχ_to_ee(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ll(e_cm, mod, me)
+σ_χχ_to_μμ(e_cm::Real, mod::AbstractScalarMediator) = σ_χχ_to_ll(e_cm, mod, mμ)
 σ_χχ_to_ee(e_cm::Real, mod::HeavyQuark) = zero(e_cm)
 σ_χχ_to_μμ(e_cm::Real, mod::HeavyQuark) = zero(e_cm)
 
