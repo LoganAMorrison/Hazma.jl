@@ -5,6 +5,19 @@ Compute the cross section of χχ̄ → `fs` in the vector mediator model `mod`.
 `fs = "all"` to return a dictionary of all of the final state cross sections,
 barring the self interaction cross section.
 """
+function σ_χχ(e_cm::Real, mod::AbstractVectorMediator)
+    return (σ_χχ_to_ee(e_cm, mod) + σ_χχ_to_μμ(e_cm, mod) +
+            σ_χχ_to_π⁰γ(e_cm, mod) + σ_χχ_to_π⁰v(e_cm, mod) +
+            σ_χχ_to_ππ(e_cm, mod) + σ_χχ_to_vv(e_cm, mod))
+end
+
+"""
+    σ_χχ(e_cm::Real, mod::AbstractVectorMediator, fs::String)
+
+Compute the cross section of χχ̄ → `fs` in the vector mediator model `mod`. Use
+`fs = "all"` to return a dictionary of all of the final state cross sections,
+barring the self interaction cross section.
+"""
 function σ_χχ(e_cm::Real, mod::AbstractVectorMediator, fs::String)
     if fs == "e⁺ e⁻"
         return σ_χχ_to_ee(e_cm, mod)
@@ -24,8 +37,6 @@ function σ_χχ(e_cm::Real, mod::AbstractVectorMediator, fs::String)
         σs = Dict(fs => σ_χχ(e_cm, mod, fs) for fs in list_annihilation_final_states(mod))
         σs["total"] = sum(values(σs))
         return σs
-    elseif fs == "total"
-        return sum(σ_χχ(e_cm, mod, fs) for fs in list_annihilation_final_states(mod))
     else
         return zero(typeof(e_cm))
     end
@@ -51,7 +62,7 @@ end
 Compute the cross section of χχ̄ → μ⁺μ⁻ in the vector mediator model `mod`.
 """
 function σ_χχ_to_μμ(e_cm::Real, mod::AbstractVectorMediator)
-    (e_cm < 2 * mod.mχ || e_cm < 2 * me) && return zero(e_cm)
+    (e_cm < 2 * mod.mχ || e_cm < 2 * mμ) && return zero(e_cm)
 
     (mod.gvμμ^2 * mod.gvχχ^2 * sqrt(-4 * mμ^2 + e_cm^2) * (2 * mμ^2 + e_cm^2) *
      (2 * mod.mχ^2 + e_cm^2)) /
@@ -152,4 +163,23 @@ function σ_χχ_to_χχ(e_cm::Real, mod::AbstractVectorMediator)
            ((mod.mv^2 - 4 * mod.mχ^2 + e_cm^2)^2 + mod.mv^2 * mod.Γ_med^2))) /
       (mod.mv * mod.Γ_med))) / (8 * π * e_cm^2 * (-4 * mod.mχ^2 + e_cm^2) *
      ((mod.mv^2 - e_cm^2)^2 + mod.mv^2 * mod.Γ_med^2))
+end
+
+"""
+    thermal_cross_section(x::Real, mod::AbstractScalarMediator)
+
+Compute the thermally average cross section for the dark matter particle of the
+given model `mod`.
+"""
+function thermal_cross_section(
+    x::T,
+    mod::AbstractVectorMediator,
+) where {T<:Real}
+    x > 300 && return zero(T)
+
+    integrand(z::T) =
+        (z^2 * (z^2 - 4) * besselk1(x * z) * σ_χχ(mod.mχ * z, mod))
+
+    #TODO: add breakpoints at: ms / mχ and 2ms / mχ
+    x / (2 * besselk2(x))^2 * quadgk(integrand, 2.0, max(50.0 / x, 150);rtol=1e-4)[1]
 end

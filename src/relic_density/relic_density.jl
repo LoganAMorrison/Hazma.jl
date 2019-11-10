@@ -93,34 +93,19 @@ function weq(T::Real, m::Float64; g::Float64 = 2.0, stats::Symbol = :fermion)
     log(neq(T, m; g = g, stats = stats) / sm_entropy_density(T))
 end
 
-
-"""
-    thermal_cross_section_integrand(z::Real, x::Real, model::AbstractTheory)
-
-Compute the integrand of the thermally average cross section for the dark
-matter particle of the given model.
-"""
-function thermal_cross_section_integrand(
-    z::Real,
-    x::Real,
-    model::AbstractTheory,
-)
-    (z^2 * (z^2 - 4.0) * besselk1(x * z) * σ_χχ(model.mχ * z, model, "total"))
-end
-
-
 """
     thermal_cross_section(x::Real, model::AbstractTheory)
 
 Compute the thermally average cross section for the dark
 matter particle of the given model.
 """
-function thermal_cross_section(x::Real, model::AbstractTheory)
-    x > 300 && return 0.0
+function thermal_cross_section(x::T, model::AbstractTheory) where {T<:Real}
+    x > 300 && return zero(T)
 
-    pf = x / (2.0 * besselk2(x))^2;
-    integrand(z) = thermal_cross_section_integrand(z, x, model);
-    pf * quadgk(integrand, 2.0, max(50.0 / x, 150))[1]
+    pf::T = x / (2 * besselk2(x))^2
+    integrand(z::T) =
+        (z^2 * (z^2 - 4) * besselk1(x * z) * σ_χχ(model.mχ * z, model))
+    pf * quadgk(integrand, 2.0, max(50 / x, 150))[1]
 end
 
 # ----------------------------------------------- #

@@ -51,7 +51,7 @@ function Γ_s_to_π⁰π⁰(mod::AbstractScalarMediator)
     ((sqrt(-4 * mπ⁰^2 + mod.ms^2) *
       (-162 * mod.gsGG * mod.Λ^3 * (-2 * mπ⁰^2 + mod.ms^2) * VH^2 +
        B0 * (md + mu) * (9 * mod.Λ + 4 * mod.gsGG * vs) *
-       (-3 * mod.Λ * VH + 3 * gsff * mod.Λ * vs + 2 * mod.gsGG * VH * vs) *
+       (-3 * mod.Λ * VH + 3 * mod.gsff * mod.Λ * vs + 2 * mod.gsGG * VH * vs) *
        (2 * mod.gsGG * VH * (9 * mod.Λ - 4 * mod.gsGG * vs) +
         9 * mod.gsff * mod.Λ * (3 * mod.Λ + 4 * mod.gsGG * vs)))^2) /
      (209952 * mod.Λ^6 * mod.ms^2 * π * VH^4 *

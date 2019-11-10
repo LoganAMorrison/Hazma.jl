@@ -23,10 +23,10 @@ macro make_mediator_theory(name, field_names, supertype=AbstractTheoryMediator)
     constraints = []
     for el in eval(field_names)
         if el isa Symbol
-            push!(fields, :($(el)::Real))
+            push!(fields, :($(el)::Float64))
             push!(constraints, nothing)
         elseif length(el) == 2 && el[1] isa Symbol && eval(el[2]) isa Function
-            push!(fields, :($(el[1])::Real))
+            push!(fields, :($(el[1])::Float64))
             push!(constraints, el[2])
         else
             error("'fields' entries must be :name or (:name, constraint_fn)")
@@ -36,7 +36,7 @@ macro make_mediator_theory(name, field_names, supertype=AbstractTheoryMediator)
     quote
         mutable struct $(esc(name)) <: $(esc(supertype))
             $(map(esc, fields)...)
-            Γ_med::Real  # add Γ_med field
+            Γ_med::Float64  # add Γ_med field
 
             function $(esc(name))($(map(esc, fields)...))
                 # TODO: I don't get why `[$(map(esc, fields)...)]` works, but
@@ -125,7 +125,7 @@ Returns the total cross section for DM annihilating with center-of-mass energy
 `e_cm`.
 """
 function σ_χχ(e_cm::Real, mod::AbstractTheory)
-    σ_tot = 0.0
+    σ_tot = zero(e_cm)
     for fs in list_annihilation_final_states(mod)
         σ_tot += σ_χχ(e_cm, mod, fs)
     end
@@ -141,14 +141,14 @@ energy `e_cm` into each available final state.
 function br_χχ(e_cm::Real, mod::AbstractTheory)
     brs = Dict{String,Float64}()
 
-    σ_tot = 0.0
+    σ_tot = zero(e_cm)
     for fs in list_annihilation_final_states(mod)
         σ_fs = σ_χχ(e_cm, mod, fs)
         brs[fs] = σ_fs
         σ_tot += σ_fs
     end
 
-    if σ_tot != 0
+    if σ_tot != zero(e_cm)
         for (fs, σ_fs) in brs
             brs[fs] = σ_fs / σ_tot
         end

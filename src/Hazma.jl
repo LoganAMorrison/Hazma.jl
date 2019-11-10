@@ -84,6 +84,7 @@ export σ_χχ_to_π⁰π⁰
 export σ_χχ_to_γγ
 export σ_χχ_to_ss
 export σ_χχ_to_χχ
+export thermal_cross_section
 include("scalar_mediator/widths.jl")
 export Γ_med, Γ_s_to_ee, Γ_s_to_μμ, Γ_s_to_ππ, Γ_s_to_π⁰π⁰, Γ_s_to_γγ, Γ_s_to_χχ
 include("scalar_mediator/fsr.jl")
